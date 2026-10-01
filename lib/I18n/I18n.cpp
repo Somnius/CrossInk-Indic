@@ -8,6 +8,19 @@
 using namespace i18n_strings;
 
 namespace {
+// The top bit of an offset means "this string is the English one, at this
+// offset in the English blob". Languages too big for 16-bit offsets use 32.
+const char* resolveString(const LangStrings& lang, const size_t index) {
+  if (lang.wideOffsets != nullptr) {
+    const uint32_t off = lang.wideOffsets[index];
+    if (off & 0x80000000u) return STRINGS_EN_DATA + (off & 0x7FFFFFFFu);
+    return lang.data + off;
+  }
+  const uint16_t off = lang.offsets[index];
+  if (off & 0x8000) return STRINGS_EN_DATA + (off & 0x7FFF);
+  return lang.data + off;
+}
+
 bool isBuiltinLanguage(const Language language) {
   const auto raw = static_cast<uint8_t>(language);
   for (const uint8_t builtin : SORTED_LANGUAGE_INDICES) {
@@ -31,18 +44,13 @@ const char* I18n::get(StrId id) const {
   // Use generated helper function - no hardcoded switch needed!
   const LangStrings lang = getLanguageStrings(isShowingFallbackStrings() ? Language::EN : _language);
 
-  // If bit 15 of the offset is set, apply the offset to the English lookup table
-  const uint16_t off = lang.offsets[index];
-  if (off & 0x8000) return STRINGS_EN_DATA + (off & 0x7FFF);
-  return lang.data + off;
+  return resolveString(lang, index);
 }
 
 const char* I18n::getEnglish(StrId id) {
   const auto index = static_cast<size_t>(id);
   if (index >= static_cast<size_t>(StrId::_COUNT)) return "???";
-  const LangStrings lang = getLanguageStrings(Language::EN);
-  const uint16_t off = lang.offsets[index];
-  return (off & 0x8000) ? STRINGS_EN_DATA + (off & 0x7FFF) : lang.data + off;
+  return resolveString(getLanguageStrings(Language::EN), index);
 }
 
 void I18n::setLanguage(Language lang) {

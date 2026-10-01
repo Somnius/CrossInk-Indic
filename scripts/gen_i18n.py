@@ -436,6 +436,29 @@ def compute_character_set(translations: Dict[str, List[str]], lang_index: int) -
 # ---------------------------------------------------------------------------
 
 
+# Languages whose own string blob passes the 15-bit limit get 32-bit offset
+# tables (bit 31 = "use the English blob"); the rest keep compact 16-bit
+# tables. Devanagari takes 3 bytes per letter, so Hindi needs the wide form.
+WIDE_LANGUAGES: Set[str] = set()
+
+
+def compute_wide_languages(
+    languages: List[str], string_keys: List[str], translations: Dict[str, List[str]]
+) -> Set[str]:
+    wide: Set[str] = set()
+    for lang_idx, code in enumerate(languages):
+        if lang_idx == 0:
+            continue
+        size = 0
+        for key in string_keys:
+            text = translations[key][lang_idx]
+            if text != translations[key][0]:
+                size += len(text.encode("utf-8")) + 1
+        if size > 0x7FFF:
+            wide.add(code)
+    return wide
+
+
 def generate_keys_header(
     languages: List[str],
     language_names: List[str],
@@ -464,7 +487,8 @@ def generate_keys_header(
 
     for code in compiled:
         lines.append(f"extern const char STRINGS_{code}_DATA[];")
-        lines.append(f"extern const uint16_t OFFSETS_{code}[];")
+        offset_type = "uint32_t" if code in WIDE_LANGUAGES else "uint16_t"
+        lines.append(f"extern const {offset_type} OFFSETS_{code}[];")
 
     lines.append("}  // namespace i18n_strings")
     lines.append("")
@@ -504,7 +528,8 @@ def generate_keys_header(
     lines.append("// Holds a flat string blob and its offset table for one language")
     lines.append("struct LangStrings {")
     lines.append("  const char* data;")
-    lines.append("  const uint16_t* offsets;")
+    lines.append("  const uint16_t* offsets;      // bit 15: offset into the English blob")
+    lines.append("  const uint32_t* wideOffsets;  // instead of offsets for large blobs; bit 31: English")
     lines.append("};")
     lines.append("")
 
@@ -515,13 +540,18 @@ def generate_keys_header(
     # A language left out of the build falls through to English below.
     for code in compiled:
         lines.append(f"    case Language::{code}:")
-        lines.append(
-            f"      return {{i18n_strings::STRINGS_{code}_DATA, i18n_strings::OFFSETS_{code}}};"
-        )
+        if code in WIDE_LANGUAGES:
+            lines.append(
+                f"      return {{i18n_strings::STRINGS_{code}_DATA, nullptr, i18n_strings::OFFSETS_{code}}};"
+            )
+        else:
+            lines.append(
+                f"      return {{i18n_strings::STRINGS_{code}_DATA, i18n_strings::OFFSETS_{code}, nullptr}};"
+            )
     first_code = languages[0]
     lines.append("    default:")
     lines.append(
-        f"      return {{i18n_strings::STRINGS_{first_code}_DATA, i18n_strings::OFFSETS_{first_code}}};"
+        f"      return {{i18n_strings::STRINGS_{first_code}_DATA, i18n_strings::OFFSETS_{first_code}, nullptr}};"
     )
     lines.append("  }")
     lines.append("}")
@@ -599,7 +629,8 @@ def generate_strings_header(
 
     for code in (c for c in languages if builtin is None or c in builtin):
         lines.append(f"extern const char STRINGS_{code}_DATA[];")
-        lines.append(f"extern const uint16_t OFFSETS_{code}[];")
+        offset_type = "uint32_t" if code in WIDE_LANGUAGES else "uint16_t"
+        lines.append(f"extern const {offset_type} OFFSETS_{code}[];")
 
     lines.append("")
     lines.append("}  // namespace i18n_strings")
@@ -688,12 +719,12 @@ def generate_strings_cpp(
             blob_strings = []
             for i, (s, en_s) in enumerate(zip(lang_strings, en_strings)):
                 if s == en_s:
-                    offsets.append(en_offsets[i] | 0x8000)
+                    offsets.append(en_offsets[i] | (0x80000000 if code in WIDE_LANGUAGES else 0x8000))
                 else:
                     offsets.append(current_offset)
                     current_offset += len(s.encode("utf-8")) + 1
                     blob_strings.append(s)
-            if current_offset > 0x7FFF:
+            if current_offset > 0x7FFF and code not in WIDE_LANGUAGES:
                 raise ValueError(
                     f"Language {code}: blob size ({current_offset} bytes) exceeds "
                     "15-bit offset limit (32767)"
@@ -709,7 +740,8 @@ def generate_strings_cpp(
         lines.append("")
 
         # Offset table — one uint16_t per StrId
-        lines.append(f"const uint16_t OFFSETS_{code}[] = {{")
+        offset_type = "uint32_t" if code in WIDE_LANGUAGES else "uint16_t"
+        lines.append(f"const {offset_type} OFFSETS_{code}[] = {{")
         chunk_size = 12
         for i in range(0, len(offsets), chunk_size):
             chunk = offsets[i : i + chunk_size]
@@ -962,6 +994,8 @@ def main(
             print(f"  Stripping {len(unused_set)} unused string(s) from output.")
 
         out = Path(output_dir)
+        WIDE_LANGUAGES.clear()
+        WIDE_LANGUAGES.update(compute_wide_languages(languages, string_keys, translations))
         generate_keys_header(
             languages,
             language_names,
