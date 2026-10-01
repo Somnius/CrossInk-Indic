@@ -42,6 +42,11 @@ class GfxRenderer {
   };
 
  private:
+  // drawText / getTextAdvanceX once the text is the visual stream (bidi
+  // resolved, complex scripts shaped) and `resolvedFontId` the font it draws in.
+  void drawVisualText(int resolvedFontId, int x, int y, const char* renderedText, bool black,
+                      EpdFontFamily::Style style, bool loadColdSdGlyphs = false) const;
+  int measureVisualText(int resolvedFontId, const char* text, EpdFontFamily::Style style, uint32_t followingCp) const;
   static constexpr size_t BW_BUFFER_CHUNK_SIZE = 8000;  // 8KB chunks to allow for non-contiguous memory
 
   HalDisplay& display;
@@ -284,6 +289,19 @@ class GfxRenderer {
   void drawText(int fontId, int x, int y, const char* text, bool black = true,
                 EpdFontFamily::Style style = EpdFontFamily::REGULAR,
                 BidiUtils::BidiBaseDir baseDir = BidiUtils::BidiBaseDir::AUTO) const;
+
+  // A word as layout measured it: `text` is its logical form, which picks the
+  // font as for any string, and `display` the form resolveForDisplay() made
+  // of it, or nullptr when it made none. The overloads taking one draw and
+  // measure a display form without shaping again, so a page turn draws what
+  // layout measured; without one they resolve `text` like any string.
+  struct LaidOutText {
+    const char* text;
+    const char* display;
+  };
+  void drawText(int fontId, int x, int y, const LaidOutText& text, bool black = true,
+                EpdFontFamily::Style style = EpdFontFamily::REGULAR,
+                BidiUtils::BidiBaseDir baseDir = BidiUtils::BidiBaseDir::AUTO) const;
   // Guard text/background pixels while a table cell is rendered. The guard is
   // intentionally single-level and scoped by the caller; nested use is a
   // programming error caught in debug builds.
@@ -300,6 +318,25 @@ class GfxRenderer {
   /// includes its kerning with the final glyph in the same fixed-point rounding
   /// step that drawText() uses, without drawing or consuming that codepoint.
   int getTextAdvanceX(int fontId, const char* text, EpdFontFamily::Style style, uint32_t followingCp = 0) const;
+  int getTextAdvanceX(int fontId, const LaidOutText& text, EpdFontFamily::Style style, uint32_t followingCp = 0) const;
+
+  // The form getTextAdvanceX measures a complex-script `text` in: shaped
+  // glyph tokens (ShapingTokens.h), or reordered vowel signs when the font
+  // cannot shape. Returns false, leaving `out` untouched, when that form is
+  // `text` itself or when a shaping font could not shape `text` just now (the
+  // page then shapes it when drawn). Tied to this font and style; layout
+  // stores it in the page cache as a LaidOutText display form.
+  bool resolveForDisplay(int fontId, const char* text, EpdFontFamily::Style style, std::string& out) const;
+
+  // While one of these is alive, repeated runs shape once (see
+  // ComplexShaper::beginMemo). Scope it to a paragraph's layout.
+  class ShapingMemoScope {
+   public:
+    ShapingMemoScope();
+    ~ShapingMemoScope();
+    ShapingMemoScope(const ShapingMemoScope&) = delete;
+    ShapingMemoScope& operator=(const ShapingMemoScope&) = delete;
+  };
   int getFontAscenderSize(int fontId) const;
   int getLineHeight(int fontId) const;
   std::string truncatedText(int fontId, const char* text, int maxWidth,

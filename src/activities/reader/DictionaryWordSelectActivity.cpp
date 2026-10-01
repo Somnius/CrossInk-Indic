@@ -254,7 +254,14 @@ void DictionaryWordSelectActivity::prewarmHighlightGlyphs(int currIdx) {
   if (w->focusBoundary > 0) {
     styleMask |= styleToBitMask(static_cast<EpdFontFamily::Style>(w->style | EpdFontFamily::BOLD));
   }
-  fcm->prewarmCache(SETTINGS.getReaderFontId(), navigator.getDisplay(*w), styleMask);
+  // Indic words draw as shaped glyphs: prewarm those along with the letters.
+  const char* text = navigator.getDisplay(*w);
+  std::string shaped;
+  if (renderer.resolveForDisplay(SETTINGS.getReaderFontId(), text, w->style, shaped)) {
+    shaped.insert(0, text);
+    text = shaped.c_str();
+  }
+  fcm->prewarmCache(SETTINGS.getReaderFontId(), text, styleMask);
 }
 
 void DictionaryWordSelectActivity::prebuildAdvanceTable() {

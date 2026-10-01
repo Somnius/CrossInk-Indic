@@ -4,6 +4,8 @@
 
 #include <algorithm>
 
+#include "ShapingTokens.h"
+
 const EpdFont* EpdFontFamily::getFont(const Style style) const {
   // Extract font variant bits; decoration and positioning bits do not affect font selection.
   const bool hasBold = (style & BOLD) != 0;
@@ -38,8 +40,35 @@ void EpdFontFamily::getTextDimensions(const char* string, int* w, int* h, const 
   int32_t prevAdvanceFP = 0;
   uint32_t cp;
   uint32_t prevCp = 0;
+  shaping::PendingGlyph shaped;
   while ((cp = utf8NextCodepoint(reinterpret_cast<const uint8_t**>(&string)))) {
+    if (shaped.consume(cp)) continue;
     if (utf8IsVariationSelector(cp)) continue;
+
+    // A shaped glyph (ShapingTokens.h) moves the pen by the shaper's advance,
+    // with no kerning or fallbacks. An SD-card glyph not loaded yet still
+    // counts as its advance box, so measuring needs no SD reads.
+    if (shaping::isGlyphToken(cp)) {
+      if (prevCp != 0) lastBaseX += fp4::toPixel(prevAdvanceFP);
+      const EpdGlyph* glyph = findGlyphData(cp, style).glyph;
+      prevAdvanceFP = shaped.advanceOr(glyph ? glyph->advanceX : 0);
+      if (glyph) {
+        const int glyphBaseX = lastBaseX + shaped.dx;
+        minX = std::min(minX, glyphBaseX + glyph->left);
+        maxX = std::max(maxX, glyphBaseX + glyph->left + glyph->width);
+        minY = std::min(minY, shaped.dy + glyph->top - glyph->height);
+        maxY = std::max(maxY, shaped.dy + glyph->top);
+      } else {
+        minX = std::min(minX, lastBaseX);
+        maxX = std::max(maxX, lastBaseX + fp4::toPixel(prevAdvanceFP));
+      }
+      lastBaseLeft = glyph ? glyph->left : 0;
+      lastBaseWidth = glyph ? glyph->width : 0;
+      lastBaseTop = glyph ? glyph->top : 0;
+      prevCp = cp;
+      shaped.reset();
+      continue;
+    }
 
     const bool isCombining = utf8IsCombiningMark(cp);
 

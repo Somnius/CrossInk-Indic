@@ -18,6 +18,11 @@ add_executable(EpubTextGrayscaleTest EpubTextGrayscaleTest.cpp
   ${REPO_ROOT}/lib/InflateReader/InflateReader.cpp
   ${REPO_ROOT}/lib/EpdFont/FontDecompressor.cpp
   ${REPO_ROOT}/lib/EpdFont/SdCardFont.cpp
+  ${REPO_ROOT}/lib/EpdFont/ComplexShaper.cpp
+  ${REPO_ROOT}/lib/EpdFont/FlashBlobCache.cpp
+  ${REPO_ROOT}/lib/EpdFont/FontAlloc.c
+  ${REPO_ROOT}/lib/Utf8/IndicReorder.cpp
+  ${OT_SHAPER_SOURCES}
   ${REPO_ROOT}/lib/Epub/Epub/blocks/TextBlock.cpp
   ${REPO_ROOT}/lib/Memory/BuildScratch.cpp
   ${REPO_ROOT}/lib/Utf8/Utf8.cpp
@@ -30,7 +35,8 @@ target_include_directories(EpubTextGrayscaleTest PRIVATE raster_stubs
   ${REPO_ROOT}/lib/GfxRenderer ../memory_policy/stubs
   ${REPO_ROOT}/lib/Epub ${REPO_ROOT}/lib/EpdFont ${REPO_ROOT}/lib/Memory
   ${REPO_ROOT}/lib/Serialization ${REPO_ROOT}/lib/Utf8 ${REPO_ROOT}/lib/MiniBidi
-  ${REPO_ROOT}/lib/miniz/src ${REPO_ROOT}/lib/InflateReader ${REPO_ROOT}/lib/uzlib/src)
+  ${REPO_ROOT}/lib/miniz/src ${REPO_ROOT}/lib/InflateReader ${REPO_ROOT}/lib/uzlib/src
+  ${OT_SHAPER_INCLUDE_DIR})
 target_compile_definitions(EpubTextGrayscaleTest PRIVATE ARDUINO_ARCH_ESP32=1 CROSSINK_MEMORY_TEST=1)
 target_link_libraries(EpubTextGrayscaleTest PRIVATE crosspoint_test_common GTest::gtest_main)
 gtest_discover_tests(EpubTextGrayscaleTest PROPERTIES ENVIRONMENT "UBSAN_OPTIONS=halt_on_error=1")

@@ -1,12 +1,17 @@
 #include "SdCardFontSystem.h"
 
+#include <ComplexShaper.h>
+#include <Fnv1a.h>
 #include <GfxRenderer.h>
 #include <HalStorage.h>
+#include <IndicScripts.h>
 #include <Logging.h>
 #include <MemoryBudget.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <iterator>
 
 #include "CrossPointSettings.h"
 #include "fontIds.h"
@@ -245,6 +250,7 @@ void SdCardFontSystem::releaseRegistry() {
 
 void SdCardFontSystem::releaseForNetwork(GfxRenderer& renderer) {
   releaseLoadedFont(renderer);
+  ComplexShaper::releaseAll();  // shaping caches and buffers outlive the fonts
 
   releaseRegistry();
   registryDirty_.store(true, std::memory_order_release);
@@ -260,16 +266,17 @@ void SdCardFontSystem::setupUiFallbacks(GfxRenderer& renderer) {
   const auto readerIt = renderer.getFontMap().find(manager_.getFontId(familyName));
   if (readerIt == renderer.getFontMap().end()) return;
 
+  // Scripts the built-in UI fonts lack: CJK (Han, Hiragana, Katakana, Hangul)
+  // and every Indic script (CrossPoint #3787), probed with one letter each.
   static constexpr uint32_t kCjkProbes[] = {0x4E00, 0x3042, 0x30A2, 0xAC00};
-  bool hasCjk = false;
-  for (const uint32_t cp : kCjkProbes) {
-    if (readerIt->second.hasCodepoint(cp)) {
-      hasCjk = true;
-      break;
-    }
-  }
-  if (!hasCjk) {
-    LOG_DBG("SDFS", "%s has no CJK coverage - skipping UI fallback sizes", familyName.c_str());
+  const EpdFontFamily& readerFont = readerIt->second;
+  const bool hasFallbackScript =
+      std::any_of(std::begin(kCjkProbes), std::end(kCjkProbes),
+                  [&](const uint32_t cp) { return readerFont.hasCodepoint(cp); }) ||
+      std::any_of(std::begin(indic::SCRIPTS), std::end(indic::SCRIPTS),
+                  [&](const indic::ScriptInfo& script) { return readerFont.hasCodepoint(script.probe); });
+  if (!hasFallbackScript) {
+    LOG_DBG("SDFS", "%s has no CJK or Indic coverage - skipping UI fallback sizes", familyName.c_str());
     return;
   }
 
@@ -289,15 +296,15 @@ void SdCardFontSystem::setupUiFallbacksDirect(GfxRenderer& renderer, const char*
   const auto readerIt = renderer.getFontMap().find(manager_.getFontId(manager_.currentFamilyName()));
   if (readerIt == renderer.getFontMap().end()) return;
 
+  // Same probes as setupUiFallbacks: CJK, or any Indic script.
   static constexpr uint32_t kCjkProbes[] = {0x4E00, 0x3042, 0x30A2, 0xAC00};
-  bool hasCjk = false;
-  for (const uint32_t cp : kCjkProbes) {
-    if (readerIt->second.hasCodepoint(cp)) {
-      hasCjk = true;
-      break;
-    }
-  }
-  if (!hasCjk) return;
+  const EpdFontFamily& readerFont = readerIt->second;
+  const bool hasFallbackScript =
+      std::any_of(std::begin(kCjkProbes), std::end(kCjkProbes),
+                  [&](const uint32_t cp) { return readerFont.hasCodepoint(cp); }) ||
+      std::any_of(std::begin(indic::SCRIPTS), std::end(indic::SCRIPTS),
+                  [&](const indic::ScriptInfo& script) { return readerFont.hasCodepoint(script.probe); });
+  if (!hasFallbackScript) return;
 
   for (const auto& ui : kUiFontSizes) {
     char path[160] = {};

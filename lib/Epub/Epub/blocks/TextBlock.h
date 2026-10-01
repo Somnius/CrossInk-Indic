@@ -13,12 +13,20 @@
 // Represents one rendered line. Per-word data is packed into one heap arena
 // instead of separate vectors/strings, which reduces heap fragmentation when
 // pages are loaded and discarded repeatedly on the ESP32-C3.
+//
+// Display text (CrossPoint #3787): complex-script words are stored a second
+// time in the form layout measured them in, usually shaped glyph tokens (see
+// GfxRenderer::resolveForDisplay), so a page turn draws exactly that without
+// running the shaper. wordText() stays the logical text for dictionary lookup
+// and text extraction. Absent entirely when no word on the line needs it.
 class TextBlock final : public Block {
  private:
   BlockStyle blockStyle;
   uint16_t numWords = 0;
-  uint16_t textBytes = 0;  // Total size of the text region, including NULs.
+  uint16_t textBytes = 0;     // Total size of the text region, including NULs.
+  uint16_t displayBytes = 0;  // Total size of the display region, including NULs.
   bool focusPresent = false;
+  bool displayPresent = false;
   bool guideDotsPresent = false;
   bool wordFlagsPresent = false;
   bool wordSpacesPresent = false;
@@ -31,17 +39,20 @@ class TextBlock final : public Block {
   // second for LTR words; the bold logical prefix is second for RTL words.
   const uint16_t* focusRunOffsetArr = nullptr;   // null when !focusPresent
   const uint16_t* guideDotXOffsetArr = nullptr;  // null when !guideDotsPresent
+  const uint16_t* displayOffArr = nullptr;       // null when !displayPresent; NO_DISPLAY = none
   const uint8_t* stylesArr = nullptr;
   const uint8_t* focusBoundaryArr = nullptr;  // null when !focusPresent
   const uint8_t* wordFlagsArr = nullptr;      // null when !wordFlagsPresent
   const uint8_t* wordSpacesArr = nullptr;     // null when !wordSpacesPresent
   const char* textArr = nullptr;
+  const char* displayArr = nullptr;  // null when !displayPresent
   std::vector<std::string> rubyTexts;
 
   TextBlock() = default;  // deserialize() fills the fields directly.
   static constexpr size_t wordSpacesBytes(const uint16_t wordCount) { return (wordCount + 7U) / 8U; }
+  static constexpr uint16_t NO_DISPLAY = 0xFFFF;
   static size_t arenaSize(uint16_t wordCount, bool hasFocus, bool hasGuideDots, bool hasWordFlags, bool hasWordSpaces,
-                          uint16_t textBytes);
+                          uint16_t textBytes, bool hasDisplay = false, uint16_t displayBytes = 0);
   void bindArenaPointers();
 
  public:
@@ -54,7 +65,8 @@ class TextBlock final : public Block {
                      const std::vector<EpdFontFamily::Style>& wordStyles, const std::vector<uint8_t>& focusBoundary,
                      const std::vector<uint16_t>& focusRunOffset, const std::vector<uint16_t>& guideDotXOffset,
                      const std::vector<uint8_t>& wordFlags, const std::vector<bool>& wordHasSpaceBefore,
-                     const BlockStyle& blockStyle = BlockStyle(), std::vector<std::string> rubyTexts = {});
+                     const BlockStyle& blockStyle = BlockStyle(), std::vector<std::string> rubyTexts = {},
+                     const std::vector<std::string>& displayWords = {});
   ~TextBlock() override = default;
   TextBlock(const TextBlock&) = delete;
   TextBlock& operator=(const TextBlock&) = delete;
@@ -65,6 +77,12 @@ class TextBlock final : public Block {
   bool valid() const { return isValid; }
   uint16_t wordCount() const { return numWords; }
   const char* wordText(const uint16_t i) const { return textArr + textOffArr[i]; }
+  // The form layout measured word i in (GfxRenderer::resolveForDisplay), or
+  // nullptr when it measured wordText(i) itself. displayWords passed to the
+  // constructor is empty, or sized like words with "" for words that draw as is.
+  const char* displayForm(const uint16_t i) const {
+    return displayPresent && displayOffArr[i] != NO_DISPLAY ? displayArr + displayOffArr[i] : nullptr;
+  }
   uint16_t wordTextLen(const uint16_t i) const {
     const uint16_t end = (i + 1 < numWords) ? textOffArr[i + 1] : textBytes;
     return end - textOffArr[i] - 1;

@@ -24,6 +24,20 @@ class GfxRenderer {
                    BidiUtils::BidiBaseDir = BidiUtils::BidiBaseDir::AUTO) const {
     return characters(text) * (6 + id);
   }
+  // Indic shaping (CrossPoint #3787): a laid-out word's logical text plus the
+  // form layout measured. This fixture never shapes, so no display form exists.
+  struct LaidOutText {
+    const char* text;
+    const char* display;
+  };
+  int getTextAdvanceX(int id, const LaidOutText& text, EpdFontFamily::Style style, uint32_t next = 0) const {
+    return getTextAdvanceX(id, text.display ? text.display : text.text, style, next);
+  }
+  bool resolveForDisplay(int, const char*, EpdFontFamily::Style, std::string&) const { return false; }
+  struct ShapingMemoScope {
+    ShapingMemoScope() {}
+    ~ShapingMemoScope() {}
+  };
   int getTextAdvanceX(int id, const char* text, EpdFontFamily::Style style, uint32_t = 0) const {
     return getTextWidth(id, text, style);
   }

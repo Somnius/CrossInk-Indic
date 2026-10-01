@@ -22,7 +22,8 @@ bool computeVisualWordOrder(const std::vector<std::string>& words, bool, std::ve
 TextBlock::TextBlock(const std::vector<std::string>&, const std::vector<int16_t>&,
                      const std::vector<EpdFontFamily::Style>&, const std::vector<uint8_t>&,
                      const std::vector<uint16_t>&, const std::vector<uint16_t>&, const std::vector<uint8_t>&,
-                     const std::vector<bool>&, const BlockStyle& blockStyle, std::vector<std::string> rubyTexts)
+                     const std::vector<bool>&, const BlockStyle& blockStyle, std::vector<std::string> rubyTexts,
+                     const std::vector<std::string>&)
     : blockStyle(blockStyle), rubyTexts(std::move(rubyTexts)) {}
 bool TextBlock::hasRuby() const { return false; }
 

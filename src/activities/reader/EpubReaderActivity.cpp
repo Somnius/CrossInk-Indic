@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <BidiUtils.h>
+#include <ComplexShaper.h>
 #include <Epub/Page.h>
 #include <Epub/PageCountEstimator.h>
 #include <Epub/blocks/TextBlock.h>
@@ -2285,6 +2286,10 @@ void EpubReaderActivity::onExit() {
   // SD-font caches live in the renderer singleton, so leaving them resident after
   // the reader exits can fragment the contiguous heap needed for Home cover images.
   releaseReaderSdFontCachesForLowMemory(renderer, "ERS", "reader exit");
+  // Shaped-run cache, shaping buffers and layout faces (Indic text) are only
+  // needed while reading; drop them before Home, Wi-Fi or OTA need the heap.
+  ComplexShaper::releaseAll();
+  ComplexShaper::setDocumentLanguage("");  // UI text after the book shapes with defaults
   MemoryBudget::logEpubHeapPools("reader exit after caches");
   Activity::onExit();
 

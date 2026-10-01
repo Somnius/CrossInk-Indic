@@ -3,7 +3,9 @@
 #include <Arena.h>
 #include <ArenaVector.h>
 #include <BidiUtils.h>
+#include <ComplexShaper.h>
 #include <GfxRenderer.h>
+#include <IndicScripts.h>
 #include <Logging.h>
 #include <Utf8.h>
 
@@ -283,9 +285,22 @@ uint32_t lastCodepointBeforeByteOffset(const std::string& word, const size_t byt
   return utf8NextCodepoint(&ptr);
 }
 
+// Indic text (U+0900-U+0DFF) encodes as E0 A4..B7 xx; a byte scan works on
+// views that are not NUL-terminated.
+bool containsIndicBytes(const std::string_view text) {
+  for (size_t i = 0; i + 1 < text.size(); ++i) {
+    const auto lead = static_cast<unsigned char>(text[i]);
+    const auto next = static_cast<unsigned char>(text[i + 1]);
+    if (lead == 0xE0 && next >= 0xA4 && next <= 0xB7) return true;
+  }
+  return false;
+}
+
 FocusTokenMetadata computeFocusMetadata(const std::string_view segment, const EpdFontFamily::Style baseStyle,
                                         const bool focusReadingEnabled) {
-  if (!focusReadingEnabled || (baseStyle & EpdFontFamily::BOLD) != 0 || segment.empty()) {
+  // Complex-script words are never split: each half would shape on its own (CrossPoint #3787).
+  if (!focusReadingEnabled || (baseStyle & EpdFontFamily::BOLD) != 0 || segment.empty() ||
+      containsIndicBytes(segment)) {
     return {baseStyle, 0};
   }
 
@@ -653,7 +668,8 @@ void ParsedText::addWord(std::string word, const EpdFontFamily::Style fontStyle,
   }
 
   // Already-bold text should stay fully bold; focus splitting would make its suffix regular later.
-  if (!this->focusReadingEnabled || (baseStyle & EpdFontFamily::BOLD) != 0) {
+  // Complex-script words are never split: each half would shape on its own.
+  if (!this->focusReadingEnabled || (baseStyle & EpdFontFamily::BOLD) != 0 || containsIndicBytes(word)) {
     pushToken(std::move(word), effectiveAttachToPrevious, effectiveNoSpaceBefore, baseStyle, 0, visibleTextOffset,
               referenceTextOffset);
     if (wordStartsRtl) {
@@ -791,6 +807,9 @@ bool ParsedText::layoutAndExtractLines(
   if (words.empty()) {
     return true;
   }
+  // Measuring words and flattening lines both shape complex-script runs; the
+  // memo makes the second pass reuse the first.
+  const GfxRenderer::ShapingMemoScope shapingMemo;
 
   Arena layoutArena(psramHeapAvailable() ? ArenaBacking::PsramPreferred : ArenaBacking::Default);
   if (!layoutArena.init(LAYOUT_ARENA_SLAB_BYTES)) {
@@ -1457,12 +1476,15 @@ bool ParsedText::splitTokenAtCodepointBoundary(const size_t wordIndex, const int
   const auto* const wordEnd = wordStart + word.size();
   while (cursor < wordEnd) {
     const auto* next = cursor;
-    if (utf8NextCodepoint(&next) == 0 || next <= cursor || next >= wordEnd) break;
+    const uint32_t currentCp = utf8NextCodepoint(&next);
+    if (currentCp == 0 || next <= cursor || next >= wordEnd) break;
 
-    // Keep combining marks and variation selectors attached to their base codepoint.
+    // Keep combining marks and variation selectors attached to their base codepoint,
+    // and never split an Indic syllable: each half would shape on its own.
     const auto* following = next;
     const uint32_t followingCp = utf8NextCodepoint(&following);
-    if (utf8IsCombiningMark(followingCp) || utf8IsVariationSelector(followingCp)) {
+    if (utf8IsCombiningMark(followingCp) || utf8IsVariationSelector(followingCp) ||
+        !indic::syllableBreakAllowed(currentCp, followingCp)) {
       cursor = next;
       continue;
     }
@@ -1889,9 +1911,19 @@ bool ParsedText::extractLine(Arena& scratchArena, const size_t breakIndex, const
     }
   }
 
-  auto block =
-      std::make_shared<TextBlock>(outWords, outXPos, outStyles, outBoundaries, outRunOffsets, outGuideDotXOffset,
-                                  outBackgroundBlack, outHasSpaceBefore, blockStyle, std::move(lineRubyTexts));
+  // Complex-script words keep the form they were measured in (shaped, via
+  // this layout's shaping memo) in the page cache, so page turns draw exactly
+  // that without shaping. Empty when the line has none.
+  std::vector<std::string> lineDisplay;
+  for (size_t i = 0; i < outWords.size(); i++) {
+    if (!ComplexShaper::containsComplexScript(outWords[i].c_str())) continue;
+    if (lineDisplay.empty()) lineDisplay.resize(outWords.size());
+    renderer.resolveForDisplay(fontId, outWords[i].c_str(), outStyles[i], lineDisplay[i]);
+  }
+
+  auto block = std::make_shared<TextBlock>(outWords, outXPos, outStyles, outBoundaries, outRunOffsets,
+                                           outGuideDotXOffset, outBackgroundBlack, outHasSpaceBefore, blockStyle,
+                                           std::move(lineRubyTexts), lineDisplay);
   if (!block->valid()) {
     LOG_ERR("PTX", "Dropping line: TextBlock arena allocation failed");
     return false;

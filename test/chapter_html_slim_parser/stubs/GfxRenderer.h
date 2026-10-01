@@ -28,4 +28,18 @@ class GfxRenderer {
                                        EpdFontFamily::Style = EpdFontFamily::REGULAR) const {
     return {};
   }
+  // Indic shaping (ported from CrossPoint #3787): a laid-out word's logical text plus the shaped
+  // form layout measured. The fixture has no shaping, so the display form is never produced.
+  struct LaidOutText {
+    const char* text;
+    const char* display;
+  };
+  int getTextAdvanceX(int font, const LaidOutText& text, EpdFontFamily::Style style, uint32_t next = 0) const {
+    return getTextAdvanceX(font, text.display ? text.display : text.text, style, next);
+  }
+  bool resolveForDisplay(int, const char*, EpdFontFamily::Style, std::string&) const { return false; }
+  struct ShapingMemoScope {
+    ShapingMemoScope() {}
+    ~ShapingMemoScope() {}
+  };
 };

@@ -24,8 +24,9 @@ target_link_libraries(InflateStreamStorageTest PRIVATE crosspoint_test_common GT
 gtest_discover_tests(InflateStreamStorageTest PROPERTIES ENVIRONMENT "UBSAN_OPTIONS=halt_on_error=1")
 
 add_executable(SdFontBitmapStorageTest SdFontBitmapStorageTest.cpp
-  ${REPO_ROOT}/lib/EpdFont/SdCardFont.cpp ${REPO_ROOT}/lib/EpdFont/EpdFont.cpp ${REPO_ROOT}/lib/Utf8/Utf8.cpp)
-target_include_directories(SdFontBitmapStorageTest PRIVATE stubs ${REPO_ROOT}/lib/Memory ${REPO_ROOT}/lib/MemoryBudget ${REPO_ROOT}/lib/EpdFont ${REPO_ROOT}/lib/Utf8)
+  ${REPO_ROOT}/lib/EpdFont/SdCardFont.cpp ${REPO_ROOT}/lib/EpdFont/EpdFont.cpp ${REPO_ROOT}/lib/Utf8/Utf8.cpp
+  ${REPO_ROOT}/lib/EpdFont/ComplexShaper.cpp ${REPO_ROOT}/lib/EpdFont/FlashBlobCache.cpp ${REPO_ROOT}/lib/EpdFont/FontAlloc.c ${REPO_ROOT}/lib/Utf8/IndicReorder.cpp ${OT_SHAPER_SOURCES})
+target_include_directories(SdFontBitmapStorageTest PRIVATE stubs ${REPO_ROOT}/lib/Memory ${REPO_ROOT}/lib/MemoryBudget ${REPO_ROOT}/lib/EpdFont ${REPO_ROOT}/lib/Utf8 ${OT_SHAPER_INCLUDE_DIR})
 target_compile_definitions(SdFontBitmapStorageTest PRIVATE ARDUINO_ARCH_ESP32=1 CROSSINK_MEMORY_TEST=1)
 target_link_libraries(SdFontBitmapStorageTest PRIVATE crosspoint_test_common GTest::gtest_main)
 gtest_discover_tests(SdFontBitmapStorageTest PROPERTIES ENVIRONMENT "UBSAN_OPTIONS=halt_on_error=1")
@@ -41,7 +42,8 @@ function(add_layout_test name root)
     ${root}/lib/Epub/Epub/ParsedText.cpp ${root}/lib/Epub/Epub/blocks/TextBlock.cpp
     ${root}/lib/MiniBidi/BidiUtils.cpp ${root}/lib/MiniBidi/minibidi.c ${root}/lib/Utf8/Utf8.cpp)
   target_include_directories(${name} PRIVATE stubs ${root}/lib/Memory ${root}/lib/MemoryBudget
-    ${root}/lib/Epub ${root}/lib/EpdFont ${root}/lib/Utf8 ${root}/lib/MiniBidi ${root}/lib/Serialization)
+    ${root}/lib/Epub ${root}/lib/EpdFont ${root}/lib/Utf8 ${root}/lib/MiniBidi ${root}/lib/Serialization
+    ${root}/lib/OtShaper)
   target_compile_definitions(${name} PRIVATE ARDUINO_ARCH_ESP32=1 CROSSINK_MEMORY_TEST=1)
   target_link_libraries(${name} PRIVATE crosspoint_test_common GTest::gtest_main)
   gtest_discover_tests(${name} TEST_PREFIX "${name}/" PROPERTIES ENVIRONMENT "UBSAN_OPTIONS=halt_on_error=1")

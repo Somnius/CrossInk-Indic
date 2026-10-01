@@ -1,6 +1,7 @@
 #include "Section.h"
 
 #include <Arduino.h>
+#include <ComplexShaper.h>
 #include <FontCacheManager.h>
 #include <GfxRenderer.h>
 #include <HalStorage.h>
@@ -27,11 +28,15 @@ constexpr uint32_t SECTION_CACHE_MAGIC = 0x535843FF;  // bytes: 0xFF, "CXS"
 // v75: HTML hidden attributes suppress content in all reading modes.
 // v76: Paragraphs without source CSS indentation no longer receive a synthetic indent.
 // v77: Ordered lists, marker suppression, and list-container insets affect page layout.
-constexpr uint8_t SECTION_FILE_VERSION = 77;
+// v79: Indic text is measured as shaped glyphs (OpenType conjuncts, reph, positioned marks;
+//      reordered vowel signs for fonts without shaping data), and TextBlocks store each
+//      complex-script word's drawn form so page turns never shape (CrossPoint #3787).
+//      v78 is skipped: the Greek builds use it for a different layout.
+constexpr uint8_t SECTION_FILE_VERSION = 79;
 // Suspended incremental build: valid pages plus LUTs and a parse-watermark trailer.
 // Change this with layout or payload changes so stale partial pages cannot resume
 // under a different layout contract.
-constexpr uint8_t SECTION_FILE_PARTIAL_VERSION = 0xF3;
+constexpr uint8_t SECTION_FILE_PARTIAL_VERSION = 0xF1;  // 0xF2 is the Greek builds' v78 partial
 constexpr uint32_t HEADER_SIZE =
     sizeof(SECTION_CACHE_MAGIC) + sizeof(uint8_t) + sizeof(int) + sizeof(float) + sizeof(bool) + sizeof(bool) +
     sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(bool) + sizeof(bool) + sizeof(uint8_t) +
@@ -237,6 +242,9 @@ bool Section::writeSectionFileHeader(const ReaderRenderSpec& spec) {
 }
 
 bool Section::loadSectionFile(const ReaderRenderSpec& spec) {
+  // Words without a stored display form (and the book's titles) shape at draw
+  // time, in this book's language even when its pages come from the cache.
+  ComplexShaper::setDocumentLanguage(epub->getLanguage().c_str());
   if (!Storage.openFileForRead("SCT", filePath, file)) {
     return false;
   }
@@ -627,6 +635,7 @@ bool Section::createSectionFile(const ReaderRenderSpec& spec, const std::functio
       buildOptions.isPreview() ? std::string(buildOptions.previewAnchor) : std::string{}, buildOptions.previewMaxPages,
       buildOptions.referenceUnitsAreCharacters);
   Hyphenator::setPreferredLanguage(epub->getLanguage());
+  ComplexShaper::setDocumentLanguage(epub->getLanguage().c_str());
   bool cancelled = false;
   bool success = false;
   if (cancelBuild()) {
@@ -961,6 +970,7 @@ bool Section::startBuild(const ReaderRenderSpec& spec, const SectionBuildOptions
   }
 
   Hyphenator::setPreferredLanguage(epub->getLanguage());
+  ComplexShaper::setDocumentLanguage(epub->getLanguage().c_str());
   build_ = std::move(ctx);
   if (!build_->parser->beginParse()) {
     LOG_ERR("SCT", "Failed to begin incremental section parse");
