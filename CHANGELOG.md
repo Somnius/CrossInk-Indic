@@ -1,3 +1,21 @@
+## [v1.6.0-hindi-reading] - 2026-10-01
+
+### Added
+
+- Hindi and the other Indic scripts are shaped while reading: conjuncts (क्ष, त्र, ज्ञ), reph (धर्म), vowel signs placed before their consonant (कि) and positioned marks, using an OpenType shaper ported from CrossPoint Reader #3787 by @ssafayet.
+- Two SD-card font families for Hindi: "Bitter Hindi" (Bitter + Noto Serif Devanagari) and "Lexend Hindi" (Lexend Deca + Noto Sans Devanagari), in 8–20 pt.
+- Devanagari book titles, file names, table of contents entries and the status bar draw in the selected Hindi family.
+- `sd-fonts.yaml` families can merge a script fallback face (`script_fallbacks`) under their Latin face.
+
+### Changed
+
+- Shaped words are stored with the chapter's cached layout (section cache version 79), so page turns do no shaping. Existing caches rebuild once.
+- Shortened titles and file names are cut at a whole syllable, never inside a conjunct.
+
+### Fixed
+
+- Text drawn in an SD-card UI fallback font outside the reader loads its glyphs first instead of showing ◆ boxes.
+
 ## [v1.6.0] - 2026-09-21
 
 ### Added

@@ -89,6 +89,70 @@ directory before generating the fonts. The output contains family folders and ZI
 archives; copy a family folder or unzip its archive into `/.fonts/` or `/fonts/`
 on the SD card. Use `--only FamilyA,FamilyB` to generate selected families.
 
+## Hindi and other Indic scripts
+
+Devanagari (Hindi, Marathi, Nepali, Sanskrit) and the other Indic scripts need
+**shaping**: vowel signs move around their consonants (कि), consonant clusters
+join into conjuncts (क्ष, त्र, ज्ञ), ra + virama becomes a reph above the next
+letter (धर्म), and marks sit where the font places them. A font alone is not
+enough; without shaping, conjuncts fall apart with a visible virama (क्‌ष).
+
+This build shapes them with the OpenType shaper from CrossPoint Reader
+([#3787](https://github.com/crosspoint-reader/crosspoint-reader/pull/3787) by
+@ssafayet, `lib/OtShaper`). It follows HarfBuzz's Indic and Universal Shaping
+Engine rules, using the font's own OpenType tables. The engine handles all ten
+scripts in the preset table above; this build ships and has tested fonts for
+**Devanagari** only.
+
+- **Fonts.** Two ready families come with the release, as zips to copy into
+  `/.fonts/` on the SD card. Then select one under
+  **Settings > Reader > Font Family**:
+
+  | Family | Latin | Devanagari |
+  |---|---|---|
+  | **Bitter Hindi** | Bitter | Noto Serif Devanagari |
+  | **Lexend Hindi** | Lexend Deca | Noto Sans Devanagari |
+
+  Italic styles keep the Latin italic and use upright Devanagari, as
+  Devanagari has no italic tradition. Both families are built from
+  `lib/EpdFont/scripts/sd-fonts.yaml` with `script_fallbacks`, a Latin face
+  merged with a Devanagari one. All fonts are under the SIL Open Font License.
+- **Book language.** Shaping follows the script, so Hindi text shapes the same
+  in a book tagged `hi`, wrongly tagged `en`, or untagged. The book's
+  `dc:language` only picks language-specific forms in fonts that have them
+  (Marathi and Nepali letterforms, for example).
+- **Line breaks.** Lines break between words and never inside an akshara
+  (syllable). Hindi is customarily not hyphenated, so no Hindi hyphenation
+  patterns are used.
+- **Titles and the interface.** Book titles, file names, the table of contents
+  and the status bar use the selected family as a size-matched UI fallback,
+  as for CJK, which is why the families include the 8, 10 and 12 pt sizes.
+- **Your own `.cpfont`.** Converting with a script's preset embeds the shaping
+  data automatically when the font has an OpenType `GSUB` table. Indic fonts
+  rarely include Latin letters, so add a Latin fallback, and build the UI
+  sizes as well:
+
+      python3 lib/EpdFont/scripts/fontconvert_sdcard.py \
+        --regular MyHindi-Regular.ttf --bold MyHindi-Bold.ttf \
+        --fallback-regular NotoSans-Regular.ttf --fallback-bold NotoSans-Bold.ttf \
+        --intervals devanagari,latin-ext,punctuation \
+        --sizes 8,10,12,14,16,18 \
+        --name MyHindi --output-dir ./MyHindi/
+
+  The shaping data comes from whichever face (the primary, or the first
+  fallback whose ranges include the script) has the script's OpenType tables.
+  Pass `--no-shaping` to leave it out. Firmware without shaping ignores the
+  section, so the same files work there too, unshaped.
+
+On the X3 and X4 (no PSRAM), the first time an Indic font is used its layout
+tables (about 90-100 KB per style for Noto Devanagari) are copied once into
+the unused `spiffs` area of the device's internal flash and read from there,
+keeping the reader's RAM free. The converter warns when a font's tables exceed
+the 128 KB that area holds per font. Opening a chapter for the first time takes
+longer than a Latin one, because every word is shaped while the chapter is
+laid out; page turns do no shaping, because the shaped words are stored with
+the chapter's cached layout.
+
 ## Available Pre-Built Fonts
 
 You can view pre-built fonts available for download at [Inky](https://inky.crossink.dev/#downloads).
@@ -135,6 +199,7 @@ To convert your own TrueType/OpenType fonts use CrossPoint's [Font Builder](http
 | `greek`       | Greek + Extended Greek                                                                                               |
 | `cyrillic`    | Cyrillic + Supplement                                                                                                |
 | `hebrew`      | Hebrew + Alphabetic Presentation Forms                                                                               |
+| `devanagari`, `bengali`, `gurmukhi`, `gujarati`, `oriya`, `tamil`, `telugu`, `kannada`, `malayalam`, `sinhala` | One Indic script's block + dandas + joiners; embeds OpenType shaping data (see [Hindi and other Indic scripts](#hindi-and-other-indic-scripts)) |
 | `georgian`    | Georgian + Georgian Supplement                                                                                       |
 | `armenian`    | Armenian                                                                                                             |
 | `ethiopic`    | Ethiopic + Extended                                                                                                  |

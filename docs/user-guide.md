@@ -667,6 +667,8 @@ power-button wake is also splashless.
 
 CrossInk supports loading additional fonts from the SD card, extending beyond the built-in Lexend Deca and Bitter families. Custom fonts can include extended Unicode coverage, enabling CJK (Chinese, Japanese, Korean) and other scripts.
 
+**Hindi (Devanagari)** needs a font with shaping data: install one of the "Bitter Hindi" or "Lexend Hindi" families from the release. See [Hindi and other Indic scripts](./sd-card-fonts.md#hindi-and-other-indic-scripts).
+
 There are three ways to install fonts:
 
 1. **Download from device (recommended):** Go to **Settings -> Reader -> Font Options -> Manage Fonts**, browse the available font families, and select one to download over Wi-Fi.
@@ -805,7 +807,7 @@ CrossInk renders text using the following Unicode character blocks, enabling sup
 - **Cyrillic Script (Standard and Extended):** Covers Russian, Ukrainian, Belarusian, Bulgarian, Serbian, Macedonian, Kazakh, Kyrgyz, Mongolian, and others.
 - **Vietnamese:** Supported via extended Latin glyph coverage in the built-in reader fonts.
 
-What is not supported with built-in reader fonts: Chinese, Japanese, Korean, Arabic, Greek, Hebrew, and Farsi. However, **CJK, Hebrew, Greek, and other extended scripts can be enabled by installing custom SD card fonts** — see [Custom Fonts (SD Card)](#38-custom-fonts-sd-card).
+What is not supported with built-in reader fonts: Chinese, Japanese, Korean, Arabic, Greek, Hebrew, and Farsi. However, **CJK, Hebrew, Greek, Hindi and other extended scripts can be enabled by installing custom SD card fonts** (Hindi and the other Indic scripts are shaped; see [Hindi and other Indic scripts](./sd-card-fonts.md#hindi-and-other-indic-scripts)) — see [Custom Fonts (SD Card)](#38-custom-fonts-sd-card).
 
 ---
 

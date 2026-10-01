@@ -1,3 +1,10 @@
+> **Hindi reading build.** This branch adds Hindi (Devanagari) reading to CrossInk: an OpenType shaper ported from
+> CrossPoint Reader [#3787](https://github.com/crosspoint-reader/crosspoint-reader/pull/3787) (by @ssafayet) draws
+> conjuncts, reph and vowel signs correctly, and two SD-card font families ("Bitter Hindi", "Lexend Hindi") ship
+> with the release. See [Hindi and other Indic scripts](./docs/sd-card-fonts.md#hindi-and-other-indic-scripts).
+>
+> <img src="./docs/images/hindi-test-page.png" alt="Devanagari test page: conjuncts, reph, vowel signs, nukta and mixed Hindi/English" width="240"/> <img src="./docs/images/hindi-premchand.png" alt="Premchand's Panch Parmeshwar in Bitter Hindi" width="240"/>
+
 > **This is a personal fork of [CrossPoint Reader](https://github.com/crosspoint-reader/crosspoint-reader)** with a focus on improved fonts and minimal reading stats.
 
 ### Supported Devices
@@ -32,6 +39,7 @@ My goal with this fork was to maintain the core Crosspoint firmware while integr
 - Added a custom `Minimal` theme and sleep screen option for the minimalists out there.
 - Added a custom `Dashboard` theme and sleep screen option for reading stats enthusiasts.
 - Reader font sizes: 10 pt, 12 pt, 14 pt, and 16 pt.
+- Hindi and other Indic scripts are shaped (conjuncts, reph, vowel signs) with SD-card fonts that carry shaping data.
 - Added ~~strikethrough~~ support.
 - Made <u>underlines</u> thicker for better visibility.
 - Added support for `<hr>` section breaks.
