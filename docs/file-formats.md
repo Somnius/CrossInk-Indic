@@ -307,17 +307,23 @@ Binary layout:
 
 Version 79 adds complex-script (Indic) shaping. A `TextBlock` line holding
 Devanagari or another Indic script also stores each such word's **display
-form**: the shaped glyph-token string it was measured with during layout (see
-`lib/EpdFont/ShapingTokens.h`), so page turns draw it as is and never shape.
-Lines without Indic text keep the version 77 layout byte for byte.
+form**: the string it was measured with during layout, so page turns draw it
+as is. That is normally shaped glyph tokens (see
+`lib/EpdFont/ShapingTokens.h`); if the shaper ran out of memory during layout
+it is the unshaped fallback (vowel signs reordered), and a `<section>.bin.reshape`
+marker file makes the next reading session rebuild the section.
 
-The block header gains a `hasWordSpaces` byte (already written by version 77)
-followed by a new `hasDisplay` byte, and, when `hasDisplay` is 1, a `u16
+Every block header gains a `hasDisplay` byte after `hasWordSpaces`, and, when `hasDisplay` is 1, a `u16
 displayBytes` after `textBytes`. The arena then holds `u16
 displayOff[wordCount]` after the guide-dot offsets (`0xFFFF` = this word has
 no display form and draws its text) and `char display[displayBytes]` after
 `text[]`, each form NUL-terminated. Deserialization rejects offsets that point
 outside `display[]` or are not NUL-terminated inside it.
+
+Lines without Indic text store no display region, so their only change is the
+`hasDisplay` byte (0). The struct below leaves out the optional ruby
+annotations (`u16 rubyCount`, then `u16 wordIndex` + string per entry) that
+sit between the arena and `BlockStyle`.
 
 Complete files use byte `79`; suspended partials use the sentinel `0xF1`.
 Version 78 and partial `0xF2` are used by the CrossInk Greek builds and are

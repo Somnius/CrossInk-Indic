@@ -11,6 +11,10 @@
 #include <MemoryBudget.h>
 #include <Serialization.h>
 
+#include <algorithm>
+#include <string>
+#include <vector>
+
 #include "Epub/ReferencePageNavigation.h"
 #include "Epub/css/CssParser.h"
 #include "Page.h"
@@ -241,10 +245,49 @@ bool Section::writeSectionFileHeader(const ReaderRenderSpec& spec) {
          serialization::tryWritePod(file, static_cast<uint32_t>(0));    // visible text LUT offset
 }
 
+namespace {
+// A section whose layout hit shaping failures (the shaper ran out of memory,
+// mostly on boards without PSRAM) stores the unshaped fallback words it
+// measured. A marker next to it makes the next session rebuild it; sections
+// marked during this session stay readable until the reader exits.
+std::vector<std::string>& sessionReshapeMarks() {
+  static std::vector<std::string> marks;
+  return marks;
+}
+
+std::string reshapeMarkerPath(const std::string& sectionPath) { return sectionPath + ".reshape"; }
+
+void markIfShapingDegraded(const std::string& sectionPath, const uint32_t failuresAtStart) {
+  if (ComplexShaper::memoryStats().failures == failuresAtStart) return;
+  const std::string marker = reshapeMarkerPath(sectionPath);
+  HalFile file;
+  if (!Storage.openFileForWrite("SCT", marker, file)) {
+    LOG_ERR("SCT", "Could not mark %s for reshaping", sectionPath.c_str());
+    return;
+  }
+  file.close();
+  sessionReshapeMarks().push_back(sectionPath);
+  LOG_INF("SCT", "Shaping ran short of memory; %s rebuilds next time", sectionPath.c_str());
+}
+}  // namespace
+
+void Section::endShapingSession() {
+  sessionReshapeMarks().clear();
+  sessionReshapeMarks().shrink_to_fit();
+}
+
 bool Section::loadSectionFile(const ReaderRenderSpec& spec) {
   // Words without a stored display form (and the book's titles) shape at draw
   // time, in this book's language even when its pages come from the cache.
   ComplexShaper::setDocumentLanguage(epub->getLanguage().c_str());
+  const std::string marker = reshapeMarkerPath(filePath);
+  const auto& marks = sessionReshapeMarks();
+  if (std::find(marks.begin(), marks.end(), filePath) == marks.end() && Storage.exists(marker.c_str())) {
+    LOG_INF("SCT", "Rebuilding %s: its last layout ran short of shaping memory", filePath.c_str());
+    Storage.remove(marker.c_str());
+    clearCache();
+    return false;
+  }
   if (!Storage.openFileForRead("SCT", filePath, file)) {
     return false;
   }
@@ -387,6 +430,10 @@ bool Section::loadSectionFile(const ReaderRenderSpec& spec) {
 
 // Your updated class method (assuming you are using the 'SD' object, which is a wrapper for a specific filesystem)
 bool Section::clearCache() const {
+  const std::string marker = reshapeMarkerPath(filePath);
+  if (Storage.exists(marker.c_str())) {
+    Storage.remove(marker.c_str());
+  }
   const std::string tmpBin = binTmpPath();
   if (Storage.exists(tmpBin.c_str())) {
     Storage.remove(tmpBin.c_str());
@@ -410,6 +457,7 @@ bool Section::clearCache() const {
 bool Section::createSectionFile(const ReaderRenderSpec& spec, const std::function<void()>& popupFn,
                                 bool* imagesWereSuppressed, bool* layoutAbortedForLowMemory,
                                 const SectionBuildOptions buildOptions) {
+  const uint32_t shapingFailuresAtStart = ComplexShaper::memoryStats().failures;
   const int fontId = spec.fontId;
   const float lineCompression = spec.lineCompression;
   const bool extraParagraphSpacing = spec.extraParagraphSpacing;
@@ -757,6 +805,7 @@ bool Section::createSectionFile(const ReaderRenderSpec& spec, const std::functio
   if (cssParser) {
     cssParser->clear();
   }
+  markIfShapingDegraded(filePath, shapingFailuresAtStart);
   partial_ = false;
   partialPageCount_ = 0;
   partialProtectedImageUnits_ = 0;
@@ -878,6 +927,7 @@ bool Section::startBuild(const ReaderRenderSpec& spec, const SectionBuildOptions
   }
 
   auto ctx = makeUniqueNoThrow<BuildContext>();
+  if (ctx) ctx->shapingFailuresAtStart = ComplexShaper::memoryStats().failures;
   if (!ctx) {
     LOG_ERR("SCT", "Failed to allocate section build context");
     lastLayoutAbortedForLowMemory_ = true;
@@ -1179,6 +1229,7 @@ bool Section::commitBuildFile(const uint8_t version, const uint32_t bytesConsume
     Storage.remove(build_->tmpSectionPath.c_str());
     return false;
   }
+  markIfShapingDegraded(filePath, build_->shapingFailuresAtStart);
   return true;
 }
 

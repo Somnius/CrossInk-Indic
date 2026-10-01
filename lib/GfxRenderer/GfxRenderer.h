@@ -322,10 +322,11 @@ class GfxRenderer {
 
   // The form getTextAdvanceX measures a complex-script `text` in: shaped
   // glyph tokens (ShapingTokens.h), or reordered vowel signs when the font
-  // cannot shape. Returns false, leaving `out` untouched, when that form is
-  // `text` itself or when a shaping font could not shape `text` just now (the
-  // page then shapes it when drawn). Tied to this font and style; layout
-  // stores it in the page cache as a LaidOutText display form.
+  // cannot shape or could not shape `text` just now (memory ran short; the
+  // section then rebuilds next session, see Section::endShapingSession).
+  // Returns false, leaving `out` untouched, when that form is `text` itself.
+  // Tied to this font and style; layout stores it in the page cache as a
+  // LaidOutText display form.
   bool resolveForDisplay(int fontId, const char* text, EpdFontFamily::Style style, std::string& out) const;
 
   // While one of these is alive, repeated runs shape once (see

@@ -53,6 +53,7 @@ class Section {
     std::string tmpSectionPath;
     bool reusedHtml = false;
     bool pageCompletionFailed = false;
+    uint32_t shapingFailuresAtStart = 0;  // ComplexShaper failures when the build began
     CssParser* cssParser = nullptr;
     // HTML byte progress, for estimating the section's total page count while it's still building.
     uint32_t bytesConsumed = 0;
@@ -104,6 +105,10 @@ class Section {
   ~Section();
   bool loadSectionFile(const ReaderRenderSpec& spec);
   bool clearCache() const;
+  // Sections laid out while the shaper ran out of memory hold unshaped
+  // fallback words; they rebuild the next time the book is opened. Called when
+  // the reader exits, ending the session that may keep reading them.
+  static void endShapingSession();
   bool createSectionFile(const ReaderRenderSpec& spec, const std::function<void()>& popupFn = nullptr,
                          bool* imagesWereSuppressed = nullptr, bool* layoutAbortedForLowMemory = nullptr,
                          SectionBuildOptions buildOptions = {});

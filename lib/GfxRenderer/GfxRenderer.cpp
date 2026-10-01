@@ -1108,9 +1108,8 @@ const char* resolveVisualText(const char* text, std::string& visualBuffer, const
   return resolveComplexText(plain, visualBuffer, shapingFont);
 }
 
-// A laid-out word draws its stored display form as is. Without one it either
-// draws as it is or could not be shaped during layout, so it is resolved like
-// any string and shapes now if the font can.
+// A laid-out word draws its stored display form as is. Without one it draws
+// as it is (it needs no shaping), so it is resolved like any string.
 const char* resolveLaidOutText(const GfxRenderer::LaidOutText& text, std::string& visualBuffer,
                                const BidiUtils::BidiBaseDir baseDir, const EpdFontData* shapingFont) {
   if (text.display != nullptr) return text.display;

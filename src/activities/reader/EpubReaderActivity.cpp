@@ -2290,6 +2290,7 @@ void EpubReaderActivity::onExit() {
   // needed while reading; drop them before Home, Wi-Fi or OTA need the heap.
   ComplexShaper::releaseAll();
   ComplexShaper::setDocumentLanguage("");  // UI text after the book shapes with defaults
+  Section::endShapingSession();
   MemoryBudget::logEpubHeapPools("reader exit after caches");
   Activity::onExit();
 

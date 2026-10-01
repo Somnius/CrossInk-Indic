@@ -101,7 +101,7 @@ This build shapes them with the OpenType shaper from CrossPoint Reader
 ([#3787](https://github.com/crosspoint-reader/crosspoint-reader/pull/3787) by
 @ssafayet, `lib/OtShaper`). It follows HarfBuzz's Indic and Universal Shaping
 Engine rules, using the font's own OpenType tables. The engine handles all ten
-scripts in the preset table above; this build ships and has tested fonts for
+Indic presets in the [preset table](#available-unicode-interval-presets) below; this build ships and has tested fonts for
 **Devanagari** only.
 
 - **Fonts.** Two ready families come with the release, as zips to copy into
@@ -150,8 +150,10 @@ the unused `spiffs` area of the device's internal flash and read from there,
 keeping the reader's RAM free. The converter warns when a font's tables exceed
 the 128 KB that area holds per font. Opening a chapter for the first time takes
 longer than a Latin one, because every word is shaped while the chapter is
-laid out; page turns do no shaping, because the shaped words are stored with
-the chapter's cached layout.
+laid out; page turns draw the shaped words stored with the chapter's cached
+layout instead of shaping them again. If the X3/X4 runs short of memory while
+laying out a chapter, the words it could not shape show unshaped for that
+session and the chapter is laid out again the next time you open the book.
 
 ## Available Pre-Built Fonts
 

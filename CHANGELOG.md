@@ -9,7 +9,7 @@
 
 ### Changed
 
-- Shaped words are stored with the chapter's cached layout (section cache version 79), so page turns do no shaping. Existing caches rebuild once.
+- Shaped words are stored with the chapter's cached layout (section cache version 79), so page turns draw them without shaping again. Existing caches rebuild once.
 - Shortened titles and file names are cut at a whole syllable, never inside a conjunct.
 
 ### Fixed
