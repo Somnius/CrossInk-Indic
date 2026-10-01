@@ -191,11 +191,36 @@ def encode_fallback_ranges(ranges: tuple | None) -> str:
     return ";".join(f"0x{start:X}-0x{end:X}" for start, end in ranges)
 
 
-def append_fallback_args(cmd: list[str], style_name: str, family_name: str) -> None:
+def parse_ranges(value) -> tuple:
+    """Parse a 'script_fallbacks' ranges list such as ["0x0900-0x097F", "0x25CC"]."""
+    ranges = []
+    for part in value:
+        start, _, end = str(part).partition("-")
+        ranges.append((int(start, 16), int(end or start, 16)))
+    return tuple(ranges)
+
+
+def script_fallback_specs(family: dict, style_name: str) -> list[tuple[Path, tuple | None]]:
+    """Resolve a family's own script fallbacks (e.g. a Devanagari face merged
+    under a Latin one). They come before the built-in stack; a fallback that
+    lists no face for this style reuses its regular face."""
+    specs = []
+    for index, fallback in enumerate(family.get("script_fallbacks", [])):
+        styles = fallback.get("styles", {})
+        spec = styles.get(style_name) or styles.get("bold" if "bold" in style_name else "regular")
+        if spec is None:
+            continue
+        label = f"{family['name']}-fallback{index}"
+        specs.append((resolve_font_path(spec, label, style_name), parse_ranges(fallback["ranges"])))
+    return specs
+
+
+def append_fallback_args(cmd: list[str], style_name: str, family_name: str,
+                         extra_specs: list[tuple[Path, tuple | None]] = ()) -> None:
     """Append one ordered fallback stack for a style."""
     range_flag = f"--fallback-{style_name}-ranges"
     font_flag = f"--fallback-{style_name}"
-    for fallback_path, ranges in builtin_fallback_specs(style_name, family_name):
+    for fallback_path, ranges in [*extra_specs, *builtin_fallback_specs(style_name, family_name)]:
         cmd.extend([font_flag, str(fallback_path), range_flag, encode_fallback_ranges(ranges)])
 
 
@@ -349,8 +374,10 @@ def build_family(
     # Resolve all font file paths (downloads as needed)
     try:
         resolved_styles = {}
+        script_fallbacks = {}
         for style_name, style_spec in styles.items():
             resolved_styles[style_name] = resolve_font_path(style_spec, name, style_name)
+            script_fallbacks[style_name] = script_fallback_specs(family, style_name)
     except (FileNotFoundError, RuntimeError) as e:
         return name, False, str(e)
 
@@ -364,14 +391,14 @@ def build_family(
         # Multi-style mode
         for style_name, font_path in resolved_styles.items():
             cmd.extend([f"--{style_name}", str(font_path)])
-            append_fallback_args(cmd, style_name, name)
+            append_fallback_args(cmd, style_name, name, script_fallbacks[style_name])
     else:
         # Single-style mode
         style_name = next(iter(resolved_styles))
         font_path = resolved_styles[style_name]
         cmd.append(str(font_path))
         cmd.extend(["--style", style_name])
-        append_fallback_args(cmd, style_name, name)
+        append_fallback_args(cmd, style_name, name, script_fallbacks[style_name])
 
     cmd.extend(["--intervals", intervals])
     cmd.extend(["--sizes", sizes])
