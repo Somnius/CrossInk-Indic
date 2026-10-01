@@ -1,0 +1,191 @@
+Processing c3-shaping (platform: https://github.com/pioarduino/platform-espressif32/releases/download/55.03.37/platform-espressif32.zip; board: esp32-c3-devkitm-1; framework: arduino)
+--------------------------------------------------------------------------------
+Verbose mode can be enabled via `-v, --verbose` option
+CONFIGURATION: https://docs.platformio.org/page/boards/espressif32/esp32-c3-devkitm-1.html
+PLATFORM: Espressif 32 (55.3.37) > Espressif ESP32-C3-DevKitM-1
+HARDWARE: ESP32C3 160MHz, 320KB RAM, 4MB Flash
+DEBUG: Current (cmsis-dap) External (cmsis-dap, esp-bridge, esp-builtin, esp-prog, iot-bus-jtag, jlink, minimodule, olimex-arm-usb-ocd, olimex-arm-usb-ocd-h, olimex-arm-usb-tiny-h, olimex-jtag-tiny, tumpa)
+PACKAGES: 
+ - contrib-piohome @ 3.4.4 
+ - framework-arduinoespressif32 @ 3.3.7 
+ - framework-arduinoespressif32-libs @ 5.5.0+sha.87912cd291 
+ - tool-esptoolpy @ 5.1.2 
+ - toolchain-riscv32-esp @ 14.2.0+20251107
+LDF: Library Dependency Finder -> https://bit.ly/configure-pio-ldf
+LDF Modes: Finder ~ chain, Compatibility ~ soft
+Found 43 compatible libraries
+Scanning dependencies...
+No dependencies
+Building in release mode
+Compiling .pio/build/c3-shaping/src/main.cpp.o
+Compiling .pio/build/c3-shaping/src/w_BuiltinShaping.cpp.o
+Compiling .pio/build/c3-shaping/src/w_ComplexShaper.cpp.o
+Compiling .pio/build/c3-shaping/src/w_EpdFont.cpp.o
+Compiling .pio/build/c3-shaping/src/w_FlashBlobCache.cpp.o
+Compiling .pio/build/c3-shaping/src/w_FontAlloc.c.o
+Compiling .pio/build/c3-shaping/src/w_FontDecompressor.cpp.o
+Compiling .pio/build/c3-shaping/src/w_IndicReorder.cpp.o
+Compiling .pio/build/c3-shaping/src/w_InflateReader.cpp.o
+Compiling .pio/build/c3-shaping/src/w_OtBuffer.cpp.o
+Compiling .pio/build/c3-shaping/src/w_OtContext.cpp.o
+Compiling .pio/build/c3-shaping/src/w_OtFace.cpp.o
+Compiling .pio/build/c3-shaping/src/w_OtGpos.cpp.o
+Compiling .pio/build/c3-shaping/src/w_OtGsub.cpp.o
+Compiling .pio/build/c3-shaping/src/w_OtIndic.cpp.o
+Compiling .pio/build/c3-shaping/src/w_OtLayout.cpp.o
+Compiling .pio/build/c3-shaping/src/w_OtNormalize.cpp.o
+Compiling .pio/build/c3-shaping/src/w_OtPlan.cpp.o
+Compiling .pio/build/c3-shaping/src/w_OtPlanBuild.cpp.o
+Compiling .pio/build/c3-shaping/src/w_OtShaper.cpp.o
+Compiling .pio/build/c3-shaping/src/w_OtTable.cpp.o
+Compiling .pio/build/c3-shaping/src/w_OtUse.cpp.o
+Compiling .pio/build/c3-shaping/src/w_Utf8.cpp.o
+Compiling .pio/build/c3-shaping/src/w_tinflate.c.o
+Compiling .pio/build/c3-shaping/src/w_uzlib_checksums.c.o
+Building .pio/build/c3-shaping/bootloader.bin
+Generating partitions .pio/build/c3-shaping/partitions.bin
+Compiling .pio/build/c3-shaping/FrameworkArduino/ColorFormat.c.o
+esptool v5.1.2
+Creating ESP32C3 image...
+Merged 2 ELF sections.
+Successfully created ESP32C3 image.
+Compiling .pio/build/c3-shaping/FrameworkArduino/Esp.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/FirmwareMSC.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/FunctionalInterrupt.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/HEXBuilder.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/HWCDC.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/HardwareSerial.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/HashBuilder.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/IPAddress.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/MD5Builder.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/MacAddress.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/Print.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/Stream.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/StreamString.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/Tone.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/USB.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/USBCDC.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/USBMSC.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/WMath.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/WString.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/base64.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/cbuf.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/chip-debug-report.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-adc.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-bt.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-cpu.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-dac.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-gpio.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-hosted.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-i2c-ng.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-i2c-slave.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-i2c.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-ledc.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-log-wrapper.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-matrix.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-misc.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-periman.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-psram.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-rgb-led.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-rmt.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-sigmadelta.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-spi.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-time.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-timer.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-tinyusb.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-touch-ng.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-touch.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/esp32-hal-uart.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/firmware_msc_fat.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/freertos_stats.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/idf_openthread_mpool_wrapper.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/libb64/cdecode.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/libb64/cencode.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/main.cpp.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/stdlib_noniso.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/wiring_pulse.c.o
+Compiling .pio/build/c3-shaping/FrameworkArduino/wiring_shift.c.o
+Archiving .pio/build/c3-shaping/libFrameworkArduino.a
+Indexing .pio/build/c3-shaping/libFrameworkArduino.a
+Linking .pio/build/c3-shaping/firmware.elf
+Memory Type Usage Summary
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Memory Type/Section ┃ Used [bytes] ┃ Used [%] ┃ Remain [bytes] ┃ Total [bytes] ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ Flash Data          │       226952 │          │                │               │
+│    .rodata          │       203996 │          │                │               │
+│    .eh_frame        │        22700 │          │                │               │
+│    .appdesc         │          256 │          │                │               │
+│ Flash Code          │       209576 │          │                │               │
+│    .text            │       209576 │          │                │               │
+│ DRAM                │        63940 │     19.9 │         257356 │        321296 │
+│    .text            │        50494 │    15.72 │                │               │
+│    .data            │         7078 │      2.2 │                │               │
+│    .bss             │         6368 │     1.98 │                │               │
+└─────────────────────┴──────────────┴──────────┴────────────────┴───────────────┘
+Total image size: 494100 bytes (.bin may be padded larger)
+Note: The reported total sizes may be smaller than those in the technical reference manual due to reserved memory and application configuration. The total flash size available for the application is not included by default, as it cannot be reliably determined due to the presence of other data like the bootloader, partition table, and application partition size.
+Retrieving maximum program size .pio/build/c3-shaping/firmware.elf
+Checking size .pio/build/c3-shaping/firmware.elf
+Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
+RAM:   [          ]   4.1% (used 13448 bytes from 327680 bytes)
+Flash: [=         ]   7.2% (used 471144 bytes from 6553600 bytes)
+Building .pio/build/c3-shaping/firmware.bin
+esptool v5.1.2
+Creating ESP32C3 image...
+Merged 2 ELF sections.
+Successfully created ESP32C3 image.
+========================= [SUCCESS] Took 6.32 seconds =========================
+--- boot 1
+Adding SPI flash device
+qemu-system-riscv32: terminating on signal 15 from pid 839471 (timeout)
+=== C3 shaping test (no PSRAM) ===
+[HEAP] start                        free=303164 largest=155636 min=297924
+built-in layout at 0x3c053f90 (in flash: yes)
+[DBG] [SHAPE] Face ready at 1867/64 ppem: 630 glyphs, shared by 1, 228 bytes in use
+built-in devanagari_14_regular: 16/16 words match HarfBuzz (14903 us)
+[HEAP] after built-in               free=291648 largest=147444 min=289932
+flash cache directory slot 0 at boot: magic=ffffffff key=ffffffff len=4294967295 (partition at 0xc90000)
+same bytes through mmap:              magic=ffffffff key=ffffffff len=4294967295
+[DBG] [FBC] Copying 96684-byte layout font to flash slot 0
+flash cache: layout mapped at 0x3c080000 (copy in RAM? no)
+[DBG] [SHAPE] Face ready at 2133/64 ppem: 630 glyphs, shared by 1, 228 bytes in use
+flash-mapped (SD font path): 16/16 words match HarfBuzz (74645 us)
+[HEAP] after flash-mapped           free=291552 largest=147444 min=289840
+[DBG] [SHAPE] Face ready at 2133/64 ppem: 630 glyphs, shared by 2, 6884 bytes in use
+flash-mapped, second shaper: 16/16 words match HarfBuzz (13939 us)
+[HEAP] after releaseAll             free=302608 largest=155636 min=289840
+[DBG] [SHAPE] Face ready at 1867/64 ppem: 630 glyphs, shared by 1, 228 bytes in use
+devanagari_14_regular: 5 groups, largest inflates to 16354 bytes
+[DBG] [FDC] Prewarm: 51 glyphs in 4546 bytes from 4 groups (0 missed)
+bitmaps prewarmed: 125 glyphs, 0 missing
+[HEAP] after prewarmed bitmaps      free=283380 largest=147444 min=266992
+bitmaps on demand: 125 glyphs, 0 missing
+[HEAP] after on-demand bitmaps      free=272028 largest=131060 min=266992
+C3 SHAPING: PASS (0 failure(s))
+--- boot 2
+Adding SPI flash device
+qemu-system-riscv32: terminating on signal 15 from pid 841246 (timeout)
+=== C3 shaping test (no PSRAM) ===
+[HEAP] start                        free=303164 largest=155636 min=297924
+built-in layout at 0x3c053f90 (in flash: yes)
+[DBG] [SHAPE] Face ready at 1867/64 ppem: 630 glyphs, shared by 1, 228 bytes in use
+built-in devanagari_14_regular: 16/16 words match HarfBuzz (14904 us)
+[HEAP] after built-in               free=291648 largest=147444 min=289932
+flash cache directory slot 0 at boot: magic=32465043 key=19fb3245 len=96684 (partition at 0xc90000)
+same bytes through mmap:              magic=32465043 key=19fb3245 len=96684
+flash cache: layout mapped at 0x3c080000 (copy in RAM? no)
+[DBG] [SHAPE] Face ready at 2133/64 ppem: 630 glyphs, shared by 1, 228 bytes in use
+flash-mapped (SD font path): 16/16 words match HarfBuzz (27022 us)
+[HEAP] after flash-mapped           free=291544 largest=147444 min=289828
+[DBG] [SHAPE] Face ready at 2133/64 ppem: 630 glyphs, shared by 2, 6884 bytes in use
+flash-mapped, second shaper: 16/16 words match HarfBuzz (13936 us)
+[HEAP] after releaseAll             free=302608 largest=155636 min=289828
+[DBG] [SHAPE] Face ready at 1867/64 ppem: 630 glyphs, shared by 1, 228 bytes in use
+devanagari_14_regular: 5 groups, largest inflates to 16354 bytes
+[DBG] [FDC] Prewarm: 51 glyphs in 4546 bytes from 4 groups (0 missed)
+bitmaps prewarmed: 125 glyphs, 0 missing
+[HEAP] after prewarmed bitmaps      free=283380 largest=147444 min=266992
+bitmaps on demand: 125 glyphs, 0 missing
+[HEAP] after on-demand bitmaps      free=272028 largest=131060 min=266992
+C3 SHAPING: PASS (0 failure(s))
