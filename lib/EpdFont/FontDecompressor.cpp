@@ -164,14 +164,15 @@ const uint8_t* FontDecompressor::getBitmap(const EpdFontData* fontData, const Ep
           stats.getBitmapTimeUs += micros() - tStart;
           return &slot.buffer[slot.glyphs[mid].bufferOffset];
         }
-        break;  // Not extracted during prewarm; fall through to hot-group path
+        break;  // Not extracted during this slot's prewarm; another slot may have it
       }
       if (slot.glyphs[mid].glyphIndex < glyphIndex)
         left = mid + 1;
       else
         right = mid - 1;
     }
-    break;
+    // A shared fallback font (built-in Devanagari) can hold one slot per style
+    // that prewarmed it; keep looking before inflating its group on demand.
   }
 
   // Fallback: hot group slot

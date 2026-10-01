@@ -84,7 +84,19 @@ const char* resolveLaidOutText(const GfxRenderer::LaidOutText& text, std::string
 const EpdFontData* fontDataFor(const std::map<int, EpdFontFamily>& fonts, const int fontId,
                                const EpdFontFamily::Style style) {
   const auto it = fonts.find(fontId);
-  return it == fonts.end() ? nullptr : it->second.getData(style);
+  if (it == fonts.end()) return nullptr;
+  const EpdFontData* data = it->second.getData(style);
+  // Built-in italic styles carry no complex-script glyphs: those come from the
+  // regular style or the family's shared fallback (EpdFontFamily::findGlyphData),
+  // so shape with whichever has them.
+  if (data != nullptr && data->shapeHandler == nullptr) {
+    const EpdFontData* regular = it->second.getData(EpdFontFamily::REGULAR);
+    if (regular != nullptr && regular->shapeHandler != nullptr) return regular;
+    // Built-in reading families take complex scripts from a shared fallback.
+    const EpdFontData* shared = it->second.getFallbackData(style);
+    if (shared != nullptr && shared->shapeHandler != nullptr) return shared;
+  }
+  return data;
 }
 
 // Appends the shaped visual form of every RTL token in `text` to `shapedOut`.
@@ -711,10 +723,13 @@ static void renderCharScaled(const GfxRenderer& renderer, GfxRenderer::RenderMod
                              const EpdFontFamily& fontFamily, const uint32_t cp, int cursorX, int cursorY,
                              const bool pixelState, const EpdFontFamily::Style style) {
   if (renderer.grayPlanesAreAbsolute()) renderMode = GfxRenderer::BW;
-  const EpdGlyph* glyph = fontFamily.getGlyph(cp, style);
+  // The glyph may come from the regular style or a shared fallback font:
+  // read its bitmap from the font that holds it.
+  const EpdFontFamily::GlyphData glyphData = fontFamily.getGlyphData(cp, style);
+  const EpdGlyph* glyph = glyphData.glyph;
   if (!glyph) return;
 
-  const EpdFontData* fontData = fontFamily.getData(style);
+  const EpdFontData* fontData = glyphData.fontData;
   const uint8_t* bitmap = renderer.getGlyphBitmap(fontData, glyph);
   if (!bitmap) return;
 
@@ -779,10 +794,13 @@ static void renderCharSmallCaps(const GfxRenderer& renderer, GfxRenderer::Render
                                 const EpdFontFamily& fontFamily, const uint32_t cp, int cursorX, int cursorY,
                                 const bool pixelState, const EpdFontFamily::Style style) {
   if (renderer.grayPlanesAreAbsolute()) renderMode = GfxRenderer::BW;
-  const EpdGlyph* glyph = fontFamily.getGlyph(cp, style);
+  // The glyph may come from the regular style or a shared fallback font:
+  // read its bitmap from the font that holds it.
+  const EpdFontFamily::GlyphData glyphData = fontFamily.getGlyphData(cp, style);
+  const EpdGlyph* glyph = glyphData.glyph;
   if (!glyph) return;
 
-  const EpdFontData* fontData = fontFamily.getData(style);
+  const EpdFontData* fontData = glyphData.fontData;
   const uint8_t* bitmap = renderer.getGlyphBitmap(fontData, glyph);
   if (!bitmap) return;
 
@@ -1104,7 +1122,8 @@ const char* resolveComplexText(const char* text, std::string& visualBuffer, cons
   if (!ComplexShaper::containsComplexScript(text)) return text;
   std::string rewritten;
   const bool shaped = shapingFont != nullptr && shapingFont->shapeHandler != nullptr &&
-                      shapingFont->shapeHandler(shapingFont->glyphMissCtx, text, &rewritten);
+                      shapingFont->shapeHandler(
+                          shapingFont->shapeCtx ? shapingFont->shapeCtx : shapingFont->glyphMissCtx, text, &rewritten);
   if (!shaped && !indicReorderForDisplay(text, rewritten)) return text;
   visualBuffer.swap(rewritten);
   return visualBuffer.c_str();
@@ -3171,7 +3190,8 @@ void GfxRenderer::drawTextRotated90CW(const int fontId, const int x, const int y
 
   const auto& font = fontIt->second;
   std::string shapedText;
-  text = resolveComplexText(replaceTokenPlanes(text, shapedText), shapedText, font.getData(style));
+  text =
+      resolveComplexText(replaceTokenPlanes(text, shapedText), shapedText, fontDataFor(fontMap, resolvedFontId, style));
   if (resolvedFontId != fontId && fontCacheManager_ && !fontCacheManager_->isScanning() &&
       sdCardFonts_.count(resolvedFontId) != 0 && sdTextNeedsGlyphs(font, text, style)) {
     fontCacheManager_->prewarmCache(resolvedFontId, text, static_cast<uint8_t>(1u << (style & 0x03)));

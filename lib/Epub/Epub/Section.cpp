@@ -36,11 +36,13 @@ constexpr uint32_t SECTION_CACHE_MAGIC = 0x535843FF;  // bytes: 0xFF, "CXS"
 //      reordered vowel signs for fonts without shaping data), and TextBlocks store each
 //      complex-script word's drawn form so page turns never shape (CrossPoint #3787).
 //      v78 is skipped: the Greek builds use it for a different layout.
-constexpr uint8_t SECTION_FILE_VERSION = 79;
+//  v80 (CrossInk-Indic): the built-in reading fonts gained Devanagari, so pages
+//      laid out with replacement glyphs (or another build's glyph tokens) rebuild.
+constexpr uint8_t SECTION_FILE_VERSION = 80;
 // Suspended incremental build: valid pages plus LUTs and a parse-watermark trailer.
 // Change this with layout or payload changes so stale partial pages cannot resume
 // under a different layout contract.
-constexpr uint8_t SECTION_FILE_PARTIAL_VERSION = 0xF1;  // 0xF2 is the Greek builds' v78 partial
+constexpr uint8_t SECTION_FILE_PARTIAL_VERSION = 0xF0;  // 0xF1: v79 (Hindi builds), 0xF2: Greek v78
 constexpr uint32_t HEADER_SIZE =
     sizeof(SECTION_CACHE_MAGIC) + sizeof(uint8_t) + sizeof(int) + sizeof(float) + sizeof(bool) + sizeof(bool) +
     sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(bool) + sizeof(bool) + sizeof(uint8_t) +

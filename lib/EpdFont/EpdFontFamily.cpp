@@ -225,12 +225,22 @@ EpdFontFamily::GlyphData EpdFontFamily::findGlyphData(const uint32_t cp, const S
     }
   }
 
+  if (boldFallback && (style & BOLD) != 0) {
+    if (const EpdGlyph* glyph = boldFallback->findGlyph(cp)) {
+      return {boldFallback->data, glyph};
+    }
+  }
   if (fallback) {
     if (const EpdGlyph* glyph = fallback->findGlyph(cp)) {
       return {fallback->data, glyph};
     }
   }
   return {nullptr, nullptr};
+}
+
+const EpdFontData* EpdFontFamily::getFallbackData(const Style style) const {
+  if (boldFallback && (style & BOLD) != 0) return boldFallback->data;
+  return fallback ? fallback->data : nullptr;
 }
 
 EpdFontFamily::GlyphData EpdFontFamily::getGlyphData(const uint32_t cp, const Style style) const {
@@ -260,7 +270,11 @@ uint32_t EpdFontFamily::getFallbackCodepoint(const uint32_t cp, const Style styl
 }
 
 bool EpdFontFamily::hasCodepoint(const uint32_t cp, const Style style) const {
-  return getFont(style)->hasCodepoint(cp) || (fallback && fallback->hasCodepoint(cp));
+  // Same order as findGlyphData: the style, the regular style, then fallbacks.
+  const EpdFont* font = getFont(style);
+  return font->hasCodepoint(cp) || (font != regular && regular->hasCodepoint(cp)) ||
+         (fallback && fallback->hasCodepoint(cp)) ||
+         (boldFallback && (style & BOLD) != 0 && boldFallback->hasCodepoint(cp));
 }
 
 int8_t EpdFontFamily::getKerning(const uint32_t leftCp, const uint32_t rightCp, const Style style) const {

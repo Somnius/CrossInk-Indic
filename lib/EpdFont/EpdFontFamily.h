@@ -23,8 +23,14 @@ class EpdFontFamily {
   };
 
   explicit EpdFontFamily(const EpdFont* regular, const EpdFont* bold = nullptr, const EpdFont* italic = nullptr,
-                         const EpdFont* boldItalic = nullptr, const EpdFont* fallback = nullptr)
-      : regular(regular), bold(bold), italic(italic), boldItalic(boldItalic), fallback(fallback) {}
+                         const EpdFont* boldItalic = nullptr, const EpdFont* fallback = nullptr,
+                         const EpdFont* boldFallback = nullptr)
+      : regular(regular),
+        bold(bold),
+        italic(italic),
+        boldItalic(boldItalic),
+        fallback(fallback),
+        boldFallback(boldFallback) {}
   ~EpdFontFamily() = default;
   void getTextDimensions(const char* string, int* w, int* h, Style style = REGULAR) const;
   const EpdFontData* getData(Style style = REGULAR) const;
@@ -37,6 +43,9 @@ class EpdFontFamily {
   bool hasCodepoint(uint32_t cp, Style style = REGULAR) const;
   int8_t getKerning(uint32_t leftCp, uint32_t rightCp, Style style = REGULAR) const;
   uint32_t applyLigatures(uint32_t cp, const char*& text, Style style = REGULAR) const;
+  /// The shared fallback font for `style` (bold styles prefer boldFallback),
+  /// or nullptr. Built-in reading families take Devanagari from these.
+  const EpdFontData* getFallbackData(Style style = REGULAR) const;
 
  private:
   const EpdFont* regular;
@@ -45,6 +54,8 @@ class EpdFontFamily {
   const EpdFont* boldItalic;
   // Optional shared glyphs keep their own bitmap size across font sizes/styles.
   const EpdFont* fallback;
+  // Bold counterpart of `fallback`, tried first for bold styles.
+  const EpdFont* boldFallback;
 
   const EpdFont* getFont(Style style) const;
 };

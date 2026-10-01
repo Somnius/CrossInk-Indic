@@ -111,6 +111,39 @@ PHM_FALLBACK_RANGES=(
   0x91CA,0x91CA
 )
 
+# Devanagari (Hindi, Marathi, Nepali, Sanskrit): letters, signs, dandas and
+# digits, plus the dotted circle the shaper shows for a stray sign. The glyphs
+# the shaper emits (conjuncts, half forms, reph, ...) are added by glyph ID
+# (--shaping-font) and shaped from a layout font compiled into the firmware.
+# Reading text gets them from shared per-size Noto Sans Devanagari fonts that
+# every reading family uses as its fallback (regular + bold); the regular UI
+# fonts carry their own uncompressed copy so menus never decompress glyphs.
+DEVANAGARI_RANGES=(
+  0x0900,0x097F
+  0x25CC,0x25CC
+)
+DEVANAGARI_INTERVALS=()
+for range in "${DEVANAGARI_RANGES[@]}"; do
+  DEVANAGARI_INTERVALS+=(--additional-intervals "$range")
+done
+DEVANAGARI_SANS_DIR="../builtinFonts/source/NotoSansDevanagari"
+
+# The layout font the shaper reads from flash, shared by every size and by
+# regular/bold (same glyph order and GSUB; advances come from each font).
+python gen_builtin_shaping_layout.py "$DEVANAGARI_SANS_DIR/NotoSansDevanagari-Regular.ttf" \
+  devanagariSansLayout > ../builtinFonts/devanagari_sans_layout.h
+
+# devanagari_args <face file> <layout symbol> <face index in the stack>
+devanagari_args() {
+  local face="$1"
+  local symbol="$2"
+  local index="$3"
+  printf '%s\n' "${DEVANAGARI_INTERVALS[@]}"
+  font_include_args "$index" "${DEVANAGARI_RANGES[@]}"
+  printf '%s\n' --shaping-font "$face" --shaping-layout-symbol "$symbol" \
+    --shaping-layout-header "$(echo "$symbol" | sed -E 's/([A-Z])/_\L\1/g').h"
+}
+
 READING_FONT_SIZES=(10 12 14 16)
 READING_FONT_STYLES=("Regular" "Bold" "Italic" "BoldItalic")
 READING_FONT_RENDER_ARGS=(--2bit --compress --pnum --darken-aa --zopfli)
@@ -163,6 +196,22 @@ generate_reading_fonts() {
   echo "Generating built-in reading fonts..."
   generate_family lexenddeca LexendDeca LexendDeca yes
   generate_family bitter Bitter Bitter yes
+
+  # Shared Devanagari for every reading family (EpdFontFamily fallback).
+  for size in ${READING_FONT_SIZES[@]}; do
+    for style in Regular Bold; do
+      local style_lower
+      style_lower="$(echo $style | tr '[:upper:]' '[:lower:]')"
+      local face="$DEVANAGARI_SANS_DIR/NotoSansDevanagari-${style}.ttf"
+      # 16 KB groups: the X3/X4 inflate a group in one contiguous allocation.
+      # Bold shapes with regular's layout font (same glyph order and GSUB).
+      python fontconvert.py "devanagari_${size}_${style_lower}" $size "$face" --no-default-intervals \
+        $(devanagari_args "$face" devanagariSansLayout 0) "${READING_FONT_RENDER_ARGS[@]}" \
+        --max-group-bytes 16384 --shaping-layout-font "$DEVANAGARI_SANS_DIR/NotoSansDevanagari-Regular.ttf" \
+        > "../builtinFonts/devanagari_${size}_${style_lower}.h"
+      echo "Generated ../builtinFonts/devanagari_${size}_${style_lower}.h"
+    done
+  done
   echo ""
   echo "Built-in reading fonts complete."
   echo ""
@@ -214,8 +263,16 @@ for size in ${UI_FONT_SIZES[@]}; do
     hebrew_path="../builtinFonts/source/IBMPlexSansHebrew/IBMPlexSansHebrew-${style}.ttf"
     arabic_path="../builtinFonts/source/NotoSansArabic/NotoSansArabic-${style}.ttf"
     output_path="../builtinFonts/${font_name}.h"
-    python fontconvert.py $font_name $size $font_path $hebrew_path $arabic_path \
-      --additional-intervals 0x05D0,0x05EA "${ARABIC_INTERVALS[@]}" > $output_path
+    # Bold UI text takes Devanagari from the regular style (EpdFontFamily).
+    devanagari_args_for_style=()
+    devanagari_stack=()
+    if [[ "$style" == "Regular" ]]; then
+      devanagari_path="$DEVANAGARI_SANS_DIR/NotoSansDevanagari-Regular.ttf"
+      devanagari_stack=("$devanagari_path")
+      devanagari_args_for_style=($(devanagari_args "$devanagari_path" devanagariSansLayout 3))
+    fi
+    python fontconvert.py $font_name $size $font_path $hebrew_path $arabic_path "${devanagari_stack[@]}" \
+      --additional-intervals 0x05D0,0x05EA "${ARABIC_INTERVALS[@]}" "${devanagari_args_for_style[@]}" > $output_path
     echo "Generated $output_path"
   done
 done
@@ -226,7 +283,10 @@ python fontconvert.py inter_8_regular 8 \
   ../builtinFonts/source/Inter/Inter-Regular.ttf \
   ../builtinFonts/source/IBMPlexSansHebrew/IBMPlexSansHebrew-Regular.ttf \
   ../builtinFonts/source/NotoSansArabic/NotoSansArabic-Regular.ttf \
-  --additional-intervals 0x05D0,0x05EA "${ARABIC_INTERVALS[@]}" > ../builtinFonts/inter_8_regular.h
+  "$DEVANAGARI_SANS_DIR/NotoSansDevanagari-Regular.ttf" \
+  --additional-intervals 0x05D0,0x05EA "${ARABIC_INTERVALS[@]}" \
+  $(devanagari_args "$DEVANAGARI_SANS_DIR/NotoSansDevanagari-Regular.ttf" devanagariSansLayout 3) \
+  > ../builtinFonts/inter_8_regular.h
 
 echo ""
 echo "Running compression verification..."

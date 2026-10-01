@@ -79,6 +79,19 @@ bool FontCacheManager::prewarmCache(int fontId, const char* utf8Text, uint8_t st
       LOG_DBG("FCM", "prewarmCache: %d glyph(s) not cached for style %d", missed, i);
     }
   }
+  // Shared fallbacks (built-in Devanagari): prewarm each once for the page,
+  // or mixed-script lines would re-inflate their groups glyph by glyph.
+  const EpdFontData* prewarmedFallbacks[2] = {nullptr, nullptr};
+  for (int8_t i = 3; i >= 0; i--) {
+    if (!(styleMask & (1 << i))) continue;
+    const EpdFontData* shared = fontMap_.at(fontId).getFallbackData(static_cast<EpdFontFamily::Style>(i));
+    if (!shared || !shared->groups || shared == prewarmedFallbacks[0] || shared == prewarmedFallbacks[1]) continue;
+    (prewarmedFallbacks[0] == nullptr ? prewarmedFallbacks[0] : prewarmedFallbacks[1]) = shared;
+    const int missed = fontDecompressor_->prewarmCache(shared, utf8Text);
+    if (missed > 0) {
+      LOG_DBG("FCM", "prewarmCache: %d glyph(s) not cached in the shared fallback", missed);
+    }
+  }
   return true;
 }
 

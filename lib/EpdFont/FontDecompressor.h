@@ -7,7 +7,7 @@
 class FontDecompressor {
  public:
   static constexpr uint16_t MAX_PAGE_GLYPHS = 512;
-  static constexpr uint8_t MAX_PAGE_SLOTS = 4;
+  static constexpr uint8_t MAX_PAGE_SLOTS = 6;  // 4 styles + regular/bold shared fallbacks
 
   FontDecompressor() = default;
   ~FontDecompressor();

@@ -27,9 +27,16 @@ parser.add_argument("--force-autohint", dest="force_autohint", action="store_tru
 parser.add_argument("--pnum", dest="pnum", action="store_true", help="Use proportional numerals (pnum OpenType feature) instead of default tabular figures. Reduces visual gaps between digits in running prose.")
 parser.add_argument("--darken-aa", dest="darken_aa", action="store_true", help="Use darker 2-bit anti-aliasing thresholds for reader fonts.")
 parser.add_argument("--no-default-intervals", action="store_true", help="Export only explicitly requested intervals, without default characters or controls.")
+parser.add_argument("--max-group-bytes", dest="max_group_bytes", type=int, default=65536, help="Cap on a compressed glyph group's inflated size (default 65536). The device inflates a group in one allocation.")
+parser.add_argument("--shaping-font", dest="shaping_font", help="Complex-script face whose glyphs (by glyph ID) are added as shaping tokens, e.g. Noto Sans Devanagari Bold.")
+parser.add_argument("--shaping-layout-font", dest="shaping_layout_font", help="Face whose OpenType layout the shaper uses (default: --shaping-font). Must share its glyph order with --shaping-font.")
+parser.add_argument("--shaping-scripts", dest="shaping_scripts", default="devanagari", help="Comma-separated shaping_blob.SCRIPTS names.")
+parser.add_argument("--shaping-layout-symbol", dest="shaping_layout_symbol", help="C symbol of the layout font array (made by gen_builtin_shaping_layout.py).")
+parser.add_argument("--shaping-layout-header", dest="shaping_layout_header", help="Header that defines --shaping-layout-symbol (default: <symbol>.h).")
 args = parser.parse_args()
 
 import freetype
+import os
 from fontTools.ttLib import TTFont
 
 GlyphProps = namedtuple("GlyphProps", ["width", "height", "advance_x", "left", "top", "data_length", "data_offset", "code_point"])
@@ -462,6 +469,80 @@ for i_start, i_end in intervals:
         )
         total_size += len(packed)
         all_glyphs.append((glyph, packed))
+
+# Complex-script shaping: every glyph the shaper can emit, by glyph ID, as
+# codepoint GLYPH_TOKEN_BASE + gid (lib/EpdFont/ShapingTokens.h).
+shaping_token_first_index = None
+shaping_token_count = 0
+shaping_layout_key = 0
+if args.shaping_font:
+    import io
+    import tempfile
+    import shaping_blob
+
+    shaping_scripts = [name.strip() for name in args.shaping_scripts.split(",") if name.strip()]
+    render_bytes, _, shaping_token_count = shaping_blob.build(args.shaping_font, shaping_scripts)
+    layout_source = args.shaping_layout_font or args.shaping_font
+    layout_render, layout_bytes, layout_count = shaping_blob.build(layout_source, shaping_scripts)
+    shaping_layout_key = shaping_blob.fnv1a32(layout_bytes) | 1
+    if layout_source != args.shaping_font:
+        render_order = TTFont(io.BytesIO(render_bytes)).getGlyphOrder()
+        layout_order = TTFont(io.BytesIO(layout_render)).getGlyphOrder()
+        if render_order != layout_order:
+            print("Error: --shaping-font and --shaping-layout-font glyph orders differ", file=sys.stderr)
+            sys.exit(1)
+
+    def pack_loaded_glyph(face, code_point):
+        bitmap = face.glyph.bitmap
+        rows = []
+        buf = bitmap.buffer
+        for y in range(bitmap.rows):
+            rows.append([buf[y * abs(bitmap.pitch) + x] for x in range(bitmap.width)])
+        bits = []
+        for y in range(bitmap.rows):
+            for x in range(bitmap.width):
+                v = rows[y][x] >> 4  # 4-bit grey, as the main loop
+                if is2Bit:
+                    bits.append(3 if v >= aa_thresholds[2] else 2 if v >= aa_thresholds[1] else 1 if v >= aa_thresholds[0] else 0)
+                else:
+                    bits.append(1 if v & 0xE else 0)
+        packed = bytearray()
+        per_byte = 4 if is2Bit else 8
+        width_bits = 2 if is2Bit else 1
+        for i in range(0, len(bits), per_byte):
+            byte = 0
+            chunk = bits[i:i + per_byte]
+            for value in chunk:
+                byte = (byte << width_bits) | value
+            byte <<= width_bits * (per_byte - len(chunk))
+            packed.append(byte)
+        return bytes(packed)
+
+    with tempfile.NamedTemporaryFile(suffix=".ttf", delete=False) as tmp:
+        tmp.write(render_bytes)
+    try:
+        token_face = freetype.Face(tmp.name)
+        token_face.set_char_size(size << 6, size << 6, 150, 150)
+        shaping_token_first_index = len(all_glyphs)
+        for gid in range(shaping_token_count):
+            token_face.load_glyph(gid, load_flags)
+            packed = pack_loaded_glyph(token_face, shaping_blob.GLYPH_TOKEN_BASE + gid)
+            glyph = GlyphProps(
+                width = token_face.glyph.bitmap.width,
+                height = token_face.glyph.bitmap.rows,
+                advance_x = fp4_from_ft16_16(token_face.glyph.linearHoriAdvance),
+                left = token_face.glyph.bitmap_left,
+                top = token_face.glyph.bitmap_top,
+                data_length = len(packed),
+                data_offset = total_size,
+                code_point = shaping_blob.GLYPH_TOKEN_BASE + gid,
+            )
+            total_size += len(packed)
+            all_glyphs.append((glyph, packed))
+    finally:
+        os.unlink(tmp.name)
+    intervals.append((shaping_blob.GLYPH_TOKEN_BASE, shaping_blob.GLYPH_TOKEN_BASE + shaping_token_count - 1))
+    print(f"// Shaping: {shaping_token_count} glyph tokens, layout key 0x{shaping_layout_key:08X}", file=sys.stderr)
 
 # pipe seems to be a good heuristic for the "real" descender
 face = load_glyph(ord('|'))
@@ -917,7 +998,7 @@ if compress:
     # 64 KB cap: large enough to hold any single built-in script group with
     # headroom, small enough to be a comfortable transient malloc on the
     # ESP32-C3.
-    GROUP_MAX_UNCOMPRESSED_BYTES = 65536
+    GROUP_MAX_UNCOMPRESSED_BYTES = args.max_group_bytes
 
     def get_script_group(code_point):
         for i, (start, end) in enumerate(SCRIPT_GROUP_RANGES):
@@ -1013,6 +1094,10 @@ print(f"""/**
 #pragma once
 #include "EpdFontData.h"
 """)
+if args.shaping_font:
+    print('#include "BuiltinShaping.h"')
+    print(f'#include "{args.shaping_layout_header or args.shaping_layout_symbol + ".h"}"')
+    print()
 
 if compress:
     print(f"static const uint8_t {font_name}Bitmaps[{len(compressed_bitmap_data)}] = {{")
@@ -1102,6 +1187,18 @@ if ligature_pairs:
         print(f"    {{ 0x{packed_pair:08X}, 0x{lig_cp:04X} }}, // {cp_label(packed_pair >> 16)} {cp_label(packed_pair & 0xFFFF)} -> {cp_label(lig_cp)}")
     print("};\n")
 
+if args.shaping_font:
+    ppem26_6 = (size * 150 * 64 + 36) // 72
+    print(f"static BuiltinShapingFace {font_name}Shaping = {{")
+    print(f"    {args.shaping_layout_symbol},")
+    print(f"    sizeof({args.shaping_layout_symbol}),")
+    print(f"    0x{shaping_layout_key:08X},")
+    print(f"    {ppem26_6},")
+    print(f"    &{font_name}Glyphs[{shaping_token_first_index}],")
+    print(f"    {shaping_token_count},")
+    print("    nullptr,")
+    print("};\n")
+
 print(f"static constexpr EpdFontData {font_name} = {{")
 print(f"    {font_name}Bitmaps,")
 print(f"    {font_name}Glyphs,")
@@ -1147,4 +1244,10 @@ if ligature_pairs:
 else:
     print(f"    nullptr,")
     print(f"    0,")
+if args.shaping_font:
+    print("    nullptr,  // glyphMissHandler")
+    print("    nullptr,  // glyphMissCtx")
+    print("    nullptr,  // coverageHandler")
+    print("    &builtinShaping::shape,")
+    print(f"    &{font_name}Shaping,")
 print("};")

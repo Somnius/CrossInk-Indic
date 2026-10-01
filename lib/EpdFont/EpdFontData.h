@@ -234,6 +234,11 @@ typedef struct {
   /// Shares glyphMissCtx. nullptr for fonts without shaping data (all fonts
   /// zero-init this).
   bool (*shapeHandler)(void* ctx, const char* utf8, std::string* out);
+
+  /// Context for shapeHandler when it is not glyphMissCtx: built-in fonts
+  /// point it at their BuiltinShapingFace (and leave glyphMissCtx null, which
+  /// marks them as non-SD fonts elsewhere).
+  void* shapeCtx;
 } EpdFontData;
 
 namespace syntheticGlyph {
