@@ -1,3 +1,9 @@
+## [v1.6.0-hindi.2] - 2026-10-02
+
+### Changed
+
+- Hindi menu wording proofread: two blind back-translation rounds and a grammar and terminology review against Android's and KOReader's Hindi. 52 strings fixed, among them "start reading from the bottom" on Home (now «नीचे से कोई किताब चुनें»), the Nearby reading-position strings, and consistent «फिर से कोशिश करें», «दबाकर रखें» and «वर्शन».
+
 ## [v1.6.0-hindi] - 2026-10-01
 
 Everything in v1.6.0-hindi-reading, plus:
