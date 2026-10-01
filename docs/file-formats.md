@@ -303,6 +303,13 @@ Binary layout:
 
 ## `section.bin`
 
+### Version 80 (CrossInk-Indic)
+
+Same layout as version 79. Bumped because the built-in reading fonts gained
+Devanagari: pages laid out with replacement glyphs, or with another build's
+glyph tokens, must rebuild. Complete files use byte `80`; suspended partials
+use `0xF0`.
+
 ### Version 79
 
 Version 79 adds complex-script (Indic) shaping. A `TextBlock` line holding

@@ -1,3 +1,21 @@
+## [v1.6.0-indic.1] - 2026-10-02
+
+First CrossInk-Indic release: CrossInk v1.6.0 with Hindi built in.
+
+### Added
+
+- Built-in Devanagari: Noto Sans Devanagari regular and bold at every reading size, shared by Bitter and Lexend Deca, and in the 8, 10 and 12 pt UI fonts. Hindi books and menus need no SD-card fonts.
+- Built-in fonts shape complex scripts from a layout font compiled into flash and read in place (no RAM copy, on the X3/X4 too).
+- `fontconvert.py --shaping-font` and `gen_builtin_shaping_layout.py` to build such fonts.
+- All 845 Hindi menu strings, proofread (blind back-translation twice, grammar and terminology review).
+- Host test for built-in shaping against HarfBuzz, and an ESP32-C3 QEMU test of both no-PSRAM shaping paths (`test/qemu/c3_shaping`).
+
+### Changed
+
+- Only English and Hindi menus are compiled in; the flash the other languages took holds the fonts.
+- Languages whose strings exceed 32 KB get 32-bit string offsets.
+- Wi-Fi updates come from CrossInk-Indic's releases.
+
 ## [v1.6.0-hindi] - 2026-10-01
 
 Everything in v1.6.0-hindi-reading, plus:

@@ -104,6 +104,10 @@ Engine rules, using the font's own OpenType tables. The engine handles all ten
 Indic presets in the [preset table](#available-unicode-interval-presets) below; this build ships and has tested fonts for
 **Devanagari** only.
 
+- **Built in.** CrossInk-Indic compiles Noto Sans Devanagari into the firmware
+  as the reading fonts' and UI fonts' Devanagari, so Hindi needs no SD-card
+  font at all. The families below are an alternative with a serif Devanagari
+  (Bitter Hindi) or a different Latin face.
 - **Fonts.** Two ready families come with the release, as zips to copy into
   `/.fonts/` on the SD card. Then select one under
   **Settings > Reader > Font Family**:

@@ -1,12 +1,47 @@
-> **Hindi build.** This branch adds Hindi (Devanagari) reading and Hindi menus to CrossInk: an OpenType shaper ported from
-> CrossPoint Reader [#3787](https://github.com/crosspoint-reader/crosspoint-reader/pull/3787) (by @ssafayet) draws
-> conjuncts, reph and vowel signs correctly, and two SD-card font families ("Bitter Hindi", "Lexend Hindi") ship
-> with the release. With one of them selected, Settings > System > Device > Language > हिन्दी turns the menus
-> Hindi too. See [Hindi and other Indic scripts](./docs/sd-card-fonts.md#hindi-and-other-indic-scripts).
->
-> <img src="./docs/images/hindi-test-page.png" alt="Devanagari test page: conjuncts, reph, vowel signs, nukta and mixed Hindi/English" width="240"/> <img src="./docs/images/hindi-premchand.png" alt="Premchand's Panch Parmeshwar in Bitter Hindi" width="240"/> <img src="./docs/images/hindi-ui-home.png" alt="Home screen in Hindi" width="240"/> <img src="./docs/images/hindi-ui-settings.png" alt="Settings in Hindi" width="240"/>
+# CrossInk-Indic
 
-> **This is a personal fork of [CrossPoint Reader](https://github.com/crosspoint-reader/crosspoint-reader)** with a focus on improved fonts and minimal reading stats.
+**CrossInk with Hindi built in.** Hindi books and Hindi menus work on a fresh SD
+card: the Devanagari fonts and the OpenType shaping data are part of the
+firmware, so there is nothing to install besides the firmware itself.
+
+<p>
+<img src="./docs/images/indic-test-page.png" alt="Devanagari test page: conjuncts, reph, vowel signs, nukta and mixed Hindi/English" width="200"/>
+<img src="./docs/images/indic-home.png" alt="Home screen in Hindi" width="200"/>
+<img src="./docs/images/indic-settings.png" alt="Settings in Hindi" width="200"/>
+<img src="./docs/images/indic-transfer.png" alt="File Transfer screen in Hindi" width="200"/>
+</p>
+
+This is a fork of [CrossInk](https://github.com/uxjulia/CrossInk) by
+[@uxjulia](https://github.com/uxjulia), itself a fork of
+[CrossPoint Reader](https://github.com/crosspoint-reader/crosspoint-reader). All of
+their work stays as it is; the changes here are about Indic scripts:
+
+- **Shaping.** Conjuncts (क्ष, त्र, ज्ञ), reph (धर्म), vowel signs before their
+  consonant (कि), nukta and chandrabindu come from the font's own OpenType
+  tables, using the shaper by [@ssafayet](https://github.com/ssafayet) from
+  CrossPoint Reader [#3787](https://github.com/crosspoint-reader/crosspoint-reader/pull/3787),
+  ported to CrossInk.
+- **Built-in Devanagari.** Noto Sans Devanagari is compiled into the firmware:
+  shared by the Bitter and Lexend Deca reading fonts at every size (regular and
+  bold), and in the 8, 10 and 12 pt UI fonts. Its layout tables are read in
+  place from flash, so shaping costs only a few KB of RAM, on the X3/X4 too.
+- **Hindi menus**, all 845 strings, proofread in two blind back-translation
+  rounds plus a grammar and terminology review against Android's and
+  KOReader's Hindi. A native speaker's review is still very welcome.
+- **English and Hindi only** in the language list: the flash the other 27
+  languages took now holds the fonts (each language is one line in
+  `platformio.ini` to add back if you build it yourself). The string tables
+  take 32-bit offsets where a language needs more than 32 KB.
+- **SD-card fonts still work**: "Bitter Hindi" and "Lexend Hindi" (serif and sans
+  Devanagari with matching Latin) and any `.cpfont` with shaping data.
+- **Updates** over Wi-Fi come from this repository's releases.
+
+Tested in the CrossInk simulator for every device profile, with host unit
+tests, and on an emulated ESP32-C3 (Espressif QEMU, [test/qemu/c3_shaping](./test/qemu/c3_shaping))
+for the X3/X4 shaping paths. Not yet on real hardware, so releases are marked
+pre-release.
+
+> **CrossInk is a personal fork of [CrossPoint Reader](https://github.com/crosspoint-reader/crosspoint-reader)** with a focus on improved fonts and minimal reading stats.
 
 ### Supported Devices
 
@@ -16,7 +51,7 @@
 - Xteink X4 Classic
 - Seeed Studio Sticky
 
-## What's different in this fork
+## What CrossInk adds to CrossPoint (by @uxjulia)
 
 My goal with this fork was to maintain the core Crosspoint firmware while integrating my preferred typography and some lightweight reading statistics. I’ve focused on keeping the underlying system stable while layering in a few "nice-to-have" features and UI refinements along the way.
 
@@ -115,9 +150,16 @@ CrossInk runs on an ESP32-C3 with limited RAM, so very large folders or complex 
 
 ## Installation
 
+**CrossInk-Indic:** download the `firmware-<device>-*.bin` for your reader from
+[this repository's releases](https://github.com/Somnius/CrossInk-Indic/releases),
+put it on the SD card and pick it in Settings > System > SD Card Firmware Update
+(the updater checks chip, board tag, checksum and SHA-256 before writing it).
+Then Settings > System > Device > Language > हिन्दी (Hindi). A reader still on
+the stock Xteink firmware first needs CrossInk itself, installed with Inky below.
+
 The fastest way to install Crossink is by using Inky, Crossink's web companion app: https://inky.crossink.dev/#flash-tools
 
-Download a `firmware-*.bin` from the [releases page](https://github.com/uxjulia/CrossInk/releases), then flash it with the web installer or command line.
+Download a `firmware-*.bin` from the [CrossInk releases page](https://github.com/uxjulia/CrossInk/releases), then flash it with the web installer or command line.
 
 See [Installation](./docs/installation.md) for step-by-step flashing and revert instructions.
 
