@@ -1129,6 +1129,14 @@ void setupDisplayAndFonts(const bool seamless, const bool loadReaderResources, c
   display.begin(seamless);
 #endif
   renderer.begin();
+  // Hindi menus need Devanagari in every UI size; until an SD font provides
+  // it (as the UI fallback), tr() serves English rather than boxes.
+  renderer.setFallbacksChangedHook([](const GfxRenderer& r) {
+    constexpr uint32_t kDevanagariKa = 0x0915;
+    I18N.setScriptFontAvailable(r.uiFontCanDraw(SMALL_FONT_ID, kDevanagariKa) &&
+                                r.uiFontCanDraw(UI_10_FONT_ID, kDevanagariKa) &&
+                                r.uiFontCanDraw(UI_12_FONT_ID, kDevanagariKa));
+  });
   display.setInverted(SETTINGS.screenInverted != 0);
   // FreeInkUI headers need more than 4 KB once the render loop and nested
   // screen builders share the task stack. Some S3 network flows can render a

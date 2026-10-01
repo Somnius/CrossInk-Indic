@@ -1,9 +1,10 @@
-> **Hindi reading build.** This branch adds Hindi (Devanagari) reading to CrossInk: an OpenType shaper ported from
+> **Hindi build.** This branch adds Hindi (Devanagari) reading and Hindi menus to CrossInk: an OpenType shaper ported from
 > CrossPoint Reader [#3787](https://github.com/crosspoint-reader/crosspoint-reader/pull/3787) (by @ssafayet) draws
 > conjuncts, reph and vowel signs correctly, and two SD-card font families ("Bitter Hindi", "Lexend Hindi") ship
-> with the release. See [Hindi and other Indic scripts](./docs/sd-card-fonts.md#hindi-and-other-indic-scripts).
+> with the release. With one of them selected, Settings > System > Device > Language > हिन्दी turns the menus
+> Hindi too. See [Hindi and other Indic scripts](./docs/sd-card-fonts.md#hindi-and-other-indic-scripts).
 >
-> <img src="./docs/images/hindi-test-page.png" alt="Devanagari test page: conjuncts, reph, vowel signs, nukta and mixed Hindi/English" width="240"/> <img src="./docs/images/hindi-premchand.png" alt="Premchand's Panch Parmeshwar in Bitter Hindi" width="240"/>
+> <img src="./docs/images/hindi-test-page.png" alt="Devanagari test page: conjuncts, reph, vowel signs, nukta and mixed Hindi/English" width="240"/> <img src="./docs/images/hindi-premchand.png" alt="Premchand's Panch Parmeshwar in Bitter Hindi" width="240"/> <img src="./docs/images/hindi-ui-home.png" alt="Home screen in Hindi" width="240"/> <img src="./docs/images/hindi-ui-settings.png" alt="Settings in Hindi" width="240"/>
 
 > **This is a personal fork of [CrossPoint Reader](https://github.com/crosspoint-reader/crosspoint-reader)** with a focus on improved fonts and minimal reading stats.
 

@@ -29,12 +29,20 @@ const char* I18n::get(StrId id) const {
   }
 
   // Use generated helper function - no hardcoded switch needed!
-  const LangStrings lang = getLanguageStrings(_language);
+  const LangStrings lang = getLanguageStrings(isShowingFallbackStrings() ? Language::EN : _language);
 
   // If bit 15 of the offset is set, apply the offset to the English lookup table
   const uint16_t off = lang.offsets[index];
   if (off & 0x8000) return STRINGS_EN_DATA + (off & 0x7FFF);
   return lang.data + off;
+}
+
+const char* I18n::getEnglish(StrId id) {
+  const auto index = static_cast<size_t>(id);
+  if (index >= static_cast<size_t>(StrId::_COUNT)) return "???";
+  const LangStrings lang = getLanguageStrings(Language::EN);
+  const uint16_t off = lang.offsets[index];
+  return (off & 0x8000) ? STRINGS_EN_DATA + (off & 0x7FFF) : lang.data + off;
 }
 
 void I18n::setLanguage(Language lang) {
@@ -46,11 +54,18 @@ void I18n::setLanguage(Language lang) {
   _language = isBuiltinLanguage(lang) ? lang : Language::EN;
 }
 
+bool I18n::needsScriptFont(const Language lang) {
+  const auto index = static_cast<size_t>(lang);
+  return index < static_cast<size_t>(Language::_COUNT) && strcmp(LANGUAGE_CODES[index], "HI") == 0;
+}
+
 const char* I18n::getLanguageName(Language lang) const {
   const auto index = static_cast<size_t>(lang);
   if (index >= static_cast<size_t>(Language::_COUNT)) {
     return "???";
   }
+  // Without a font for its script the native name would draw as boxes.
+  if (!_scriptFontAvailable.load(std::memory_order_relaxed) && needsScriptFont(lang)) return "Hindi";
   return LANGUAGE_NAMES[index];
 }
 

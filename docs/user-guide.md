@@ -390,11 +390,13 @@ which status-bar items are shown.
 - **Check for Updates** and **SD Firmware Update**: Check for firmware updates
   over Wi-Fi or install a `firmware.bin` placed on the SD card.
 
-- **Language**: Set the UI language. CrossInk supports 28 languages: English,
+- **Language**: Set the UI language. CrossInk supports 29 languages: English,
   Spanish, French, German, Czech, Brazilian Portuguese, Russian, Swedish,
   Romanian, Catalan, Ukrainian, Belarusian, Italian, Polish, Finnish, Danish,
   Dutch, Turkish, Kazakh, Hungarian, Lithuanian, Slovenian, Valencian, Hebrew,
-  Vietnamese, Slovak, Portuguese (Portugal), and Arabic.
+  Vietnamese, Slovak, Portuguese (Portugal), Arabic, and Hindi. Hindi menus
+  need a Hindi SD-card font (Bitter Hindi or Lexend Hindi) selected as the
+  reader font; until then they stay in English.
 
 #### 3.6.5 OPDS Servers (Multiple Libraries)
 

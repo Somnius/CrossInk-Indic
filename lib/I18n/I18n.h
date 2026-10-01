@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <cstdint>
 
 #include "I18nKeys.h"
@@ -19,9 +20,21 @@ class I18n {
   const char* get(StrId id) const;
 
   const char* operator[](StrId id) const { return get(id); }
+  // The English string, e.g. where the current language's script cannot draw.
+  static const char* getEnglish(StrId id);
 
   Language getLanguage() const { return _language; }
   void setLanguage(Language lang);
+
+  // Scripts the built-in UI fonts lack (Devanagari) need an SD-card font. While
+  // none is loaded, get() serves English for those languages instead of boxes;
+  // getLanguage() still reports the language the reader chose.
+  static bool needsScriptFont(Language lang);
+  // Written when UI fonts load (main loop), read while rendering (render task).
+  void setScriptFontAvailable(bool available) { _scriptFontAvailable.store(available, std::memory_order_relaxed); }
+  bool isShowingFallbackStrings() const {
+    return !_scriptFontAvailable.load(std::memory_order_relaxed) && needsScriptFont(_language);
+  }
   const char* getLanguageName(Language lang) const;
   static Language languageFromCode(const char* code);
 
@@ -33,6 +46,7 @@ class I18n {
   I18n() : _language(Language::EN) {}
 
   Language _language;
+  std::atomic<bool> _scriptFontAvailable{false};
 };
 
 // Convenience macros

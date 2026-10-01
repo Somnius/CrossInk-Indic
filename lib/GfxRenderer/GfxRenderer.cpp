@@ -355,6 +355,15 @@ void GfxRenderer::insertFont(const int fontId, EpdFontFamily font) {
   }
 }
 
+bool GfxRenderer::uiFontCanDraw(const int fontId, const uint32_t cp) const {
+  const auto fontIt = fontMap.find(fontId);
+  if (fontIt != fontMap.end() && fontIt->second.hasCodepoint(cp)) return true;
+  const auto fbIt = fallbackFontMap_.find(fontId);
+  if (fbIt == fallbackFontMap_.end()) return false;
+  const auto fallbackIt = fontMap.find(fbIt->second);
+  return fallbackIt != fontMap.end() && fallbackIt->second.hasCodepoint(cp);
+}
+
 int GfxRenderer::resolveTextFontId(const int fontId, const char* text, const EpdFontFamily::Style style) const {
   if (fallbackFontMap_.empty() || text == nullptr || *text == '\0') {
     return fontId;

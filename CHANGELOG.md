@@ -1,3 +1,16 @@
+## [v1.6.0-hindi] - 2026-10-01
+
+Everything in v1.6.0-hindi-reading, plus:
+
+### Added
+
+- Hindi UI (हिन्दी): 781 of 845 menu strings, machine-assisted and awaiting review by a native speaker. Rarely seen technical messages stay in English to fit CrossInk's 32 KB per-language string limit.
+- Hindi menus draw in the selected Hindi SD-card font, shaped like book text.
+
+### Changed
+
+- While no font can draw Hindi, choosing Hindi keeps the menus in English and explains which font to install, instead of showing boxes. The language picker lists it as "Hindi" until then.
+
 ## [v1.6.0-hindi-reading] - 2026-10-01
 
 ### Added

@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <string>
 #include <cstring>
 
 #include "CrossPointSettings.h"
@@ -262,10 +263,21 @@ void FontSelectionActivity::renderPreviewPane(int top, int height, int fontId, c
   const int maxLines = std::max(1, innerHeight / (lineH + 2));
 
   const char* previewText = I18N.get(StrId::STR_FONT_PREVIEW_TEXT);
+  // The Hindi sample has Devanagari; a font without it previews the English one.
+  if (I18n::needsScriptFont(I18N.getLanguage()) && !renderer.uiFontCanDraw(fontId, 0x0915)) {
+    previewText = I18n::getEnglish(StrId::STR_FONT_PREVIEW_TEXT);
+  }
   if (auto* fcm = renderer.getFontCacheManager()) {
     char prewarmBuf[256];
     snprintf(prewarmBuf, sizeof(prewarmBuf), "%s %s", previewText, ELLIPSIS_UTF8);
-    fcm->prewarmCache(fontId, prewarmBuf, 0x01);
+    // Indic text draws as shaped glyphs: prewarm those along with the letters.
+    std::string shaped;
+    if (renderer.resolveForDisplay(fontId, previewText, EpdFontFamily::REGULAR, shaped)) {
+      shaped.insert(0, prewarmBuf);
+      fcm->prewarmCache(fontId, shaped.c_str(), 0x01);
+    } else {
+      fcm->prewarmCache(fontId, prewarmBuf, 0x01);
+    }
   }
 
   const auto lines = renderer.wrappedText(fontId, previewText, width, maxLines);

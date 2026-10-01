@@ -117,6 +117,7 @@ class GfxRenderer {
   // appears at the same point size as the surrounding UI text. Populated by the
   // app-level SD font setup when an SD family is loaded. See resolveTextFontId().
   std::map<int, int> fallbackFontMap_;
+  void (*fallbacksChanged_)(const GfxRenderer&) = nullptr;
 
   // If `text` contains a CJK codepoint that `fontId` cannot render and `fontId`
   // has a registered fallback, returns the fallback id; otherwise returns
@@ -184,8 +185,19 @@ class GfxRenderer {
   bool isSdCardFont(int fontId) const { return sdCardFonts_.count(fontId) > 0; }
   // Register/clear size-matched CJK UI fallbacks (see fallbackFontMap_).
   // setFallbackFont maps a primary UI font id to an SD font id of the same size.
-  void setFallbackFont(int primaryFontId, int fallbackFontId) { fallbackFontMap_[primaryFontId] = fallbackFontId; }
-  void clearFallbackFonts() { fallbackFontMap_.clear(); }
+  void setFallbackFont(int primaryFontId, int fallbackFontId) {
+    fallbackFontMap_[primaryFontId] = fallbackFontId;
+    if (fallbacksChanged_) fallbacksChanged_(*this);
+  }
+  void clearFallbackFonts() {
+    fallbackFontMap_.clear();
+    if (fallbacksChanged_) fallbacksChanged_(*this);
+  }
+  // Called after every change to the UI fallbacks, e.g. so the UI language can
+  // fall back to English while no font can draw its script.
+  void setFallbacksChangedHook(void (*hook)(const GfxRenderer&)) { fallbacksChanged_ = hook; }
+  // True when `cp` draws in UI font `fontId`, directly or through its fallback.
+  bool uiFontCanDraw(int fontId, uint32_t cp) const;
   // Ensure SD card font glyph data is loaded for the given text. Called from layout code
   // (which holds a const GfxRenderer&) before measuring word widths. Safe to call on non-SD fonts (no-op).
   // styleMask: bitmask of styles to prepare (bit 0=regular, 1=bold, 2=italic, 3=bold-italic).

@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <iterator>
 
@@ -22,6 +23,10 @@ struct UiFontSize {
   int fontId;
   uint8_t pointSize;
 };
+
+// How far (in points) a UI fallback may be from its UI size when the family
+// has no exact match.
+constexpr int kUiFallbackSizeSlack = 2;
 
 constexpr UiFontSize kUiFontSizes[] = {
     {SMALL_FONT_ID, 8},
@@ -281,7 +286,15 @@ void SdCardFontSystem::setupUiFallbacks(GfxRenderer& renderer) {
   }
 
   for (const auto& ui : kUiFontSizes) {
-    const int sdFontId = manager_.loadFamilyExtraSize(*family, renderer, ui.pointSize);
+    int sdFontId = manager_.loadFamilyExtraSize(*family, renderer, ui.pointSize);
+    if (sdFontId == 0) {
+      // Downloads in the default size range lack 8 pt: a size within
+      // kUiFallbackSizeSlack still beats boxes (or English menus for Hindi).
+      const auto* nearest = family->findClosestFile(ui.pointSize);
+      if (nearest && std::abs(static_cast<int>(nearest->pointSize) - ui.pointSize) <= kUiFallbackSizeSlack) {
+        sdFontId = manager_.loadFamilyExtraSize(*family, renderer, nearest->pointSize);
+      }
+    }
     if (sdFontId != 0) {
       renderer.setFallbackFont(ui.fontId, sdFontId);
     } else {
@@ -309,7 +322,8 @@ void SdCardFontSystem::setupUiFallbacksDirect(GfxRenderer& renderer, const char*
   for (const auto& ui : kUiFontSizes) {
     char path[160] = {};
     uint8_t pointSize = 0;
-    if (!findInstalledFontFile(familyName, ui.pointSize, FontFileSelection::Exact, path, sizeof(path), pointSize)) {
+    if (!findInstalledFontFile(familyName, ui.pointSize, FontFileSelection::Closest, path, sizeof(path), pointSize) ||
+        std::abs(static_cast<int>(pointSize) - ui.pointSize) > kUiFallbackSizeSlack) {
       continue;
     }
     const int sdFontId = manager_.loadFamilyExtraFile(path, familyName, pointSize, renderer);

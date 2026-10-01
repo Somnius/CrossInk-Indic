@@ -36,6 +36,7 @@
 #include "RecentBookProgress.h"
 #include "RecentBooksStore.h"
 #include "SavedItemsHomeActivity.h"
+#include "SdCardFontSystem.h"
 #include "components/UITheme.h"
 #include "components/themes/dashboard/DashboardTheme.h"
 #include "components/themes/lyra/LyraCarouselTheme.h"
@@ -859,6 +860,9 @@ void HomeActivity::loadRecentCovers(int coverHeight) {
 
 void HomeActivity::onEnter() {
   Activity::onEnter();
+  // Network screens release the SD fonts, and with them the Devanagari UI
+  // fallback; reload so Hindi menus come back after them.
+  if (I18N.isShowingFallbackStrings()) sdFontSystem.ensureLoaded(renderer);
 
   hasOpdsServers = OPDS_STORE.hasServers();
   const bool isCarouselTheme =

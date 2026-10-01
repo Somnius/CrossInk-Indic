@@ -21,6 +21,7 @@
 #include "ClockOffsetActivity.h"
 #include "ClockSyncActivity.h"
 #include "CrossPointSettings.h"
+#include "CrossPointState.h"
 #include "FontSelectionActivity.h"
 #include "FrontlightTimePickerActivity.h"
 #include "KOReaderSettingsActivity.h"
@@ -642,6 +643,15 @@ void SettingsActivity::openLanguagePicker() {
 
     SETTINGS.language = langIndex;
     SETTINGS.saveToFile();
+    if (I18N.isShowingFallbackStrings()) {
+      // Hindi was chosen but no Devanagari font is loaded: say why the menus
+      // stay in English (the alert itself is English for the same reason).
+      snprintf(APP_STATE.pendingAlertTitle, sizeof(APP_STATE.pendingAlertTitle), "%s",
+               tr(STR_SCRIPT_FONT_NEEDED_TITLE));
+      snprintf(APP_STATE.pendingAlertBody, sizeof(APP_STATE.pendingAlertBody), "%s", tr(STR_SCRIPT_FONT_NEEDED_BODY));
+      APP_STATE.pendingAlertGoHomeOnBack.store(false, std::memory_order_relaxed);
+      APP_STATE.hasPendingAlert.store(true, std::memory_order_release);
+    }
     requestUpdate();
   });
   requestUpdate();
