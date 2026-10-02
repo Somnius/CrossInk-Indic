@@ -190,3 +190,43 @@ TEST(TouchReaderPreviewModel, KeepsBoundedPreviewWhenPageHasMoreLinesThanSnapsho
   EXPECT_EQ(renderer.drawCalls.size(), TouchReaderPreviewModel::LINE_CAPACITY);
   EXPECT_GT(renderer.drawCalls.back().x, 0);
 }
+
+TEST(TouchReaderPreviewModel, JoinsAWordThePageSplitAcrossLines) {
+  auto second = makeLine({"cc", "dd"});
+  // The page hyphenated "bbcc" at its line end.
+  std::vector<TextBlock::Word> words = {{"aa", 0, EpdFontFamily::REGULAR, false, false},
+                                        {"bb-", 4, EpdFontFamily::REGULAR, true, true}};
+  Page page;
+  page.elements.push_back(std::make_unique<PageLine>(std::make_shared<TextBlock>(std::move(words)), 0, 0));
+  page.elements.push_back(std::make_unique<PageLine>(second, 0, 10));
+
+  GfxRenderer renderer;
+  TouchReaderPreviewModel model;
+  ASSERT_TRUE(model.capture(page, renderer, 1, 100));
+  model.renderText(renderer, 1, 0, 0, 100, 100, 0, static_cast<uint8_t>(CssTextAlign::Left), false, false, true);
+
+  ASSERT_EQ(renderer.drawCalls.size(), 3U);
+  EXPECT_EQ(renderer.drawCalls[0].text, "aa");
+  EXPECT_EQ(renderer.drawCalls[1].text, "bbcc");
+  EXPECT_EQ(renderer.drawCalls[2].text, "dd");
+}
+
+TEST(TouchReaderPreviewModel, HyphenatesAWordThatOverflowsThePreviewLine) {
+  Hyphenator::table()["cccccc"] = {{3, true}};
+  Page page;
+  page.elements.push_back(std::make_unique<PageLine>(makeLine({"aa", "cccccc"}), 0, 0));
+
+  GfxRenderer renderer;
+  TouchReaderPreviewModel model;
+  ASSERT_TRUE(model.capture(page, renderer, 1, 100));
+  // "aa" + space + "ccc-" is 7 wide; the whole word would need 9.
+  model.renderText(renderer, 1, 0, 0, 7, 100, 0, static_cast<uint8_t>(CssTextAlign::Left), false, false, true);
+  Hyphenator::table().clear();
+
+  ASSERT_EQ(renderer.drawCalls.size(), 3U);
+  EXPECT_EQ(renderer.drawCalls[0].text, "aa");
+  EXPECT_EQ(renderer.drawCalls[1].text, "ccc-");
+  EXPECT_EQ(renderer.drawCalls[1].y, 0);
+  EXPECT_EQ(renderer.drawCalls[2].text, "ccc");
+  EXPECT_EQ(renderer.drawCalls[2].y, 10);
+}

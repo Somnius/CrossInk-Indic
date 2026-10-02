@@ -1858,18 +1858,19 @@ void EpubReaderTouchMenuActivity::renderPreviewText(const ReaderSettingsDraft& p
   }
   int orientedTop, orientedRight, orientedBottom, orientedLeft;
   renderer.getOrientedViewableTRBL(&orientedTop, &orientedRight, &orientedBottom, &orientedLeft);
-  (void)orientedRight;
   (void)orientedBottom;
-  (void)orientedLeft;
   const int clockReservation = ReaderUtils::getTopClockStatusBarReservedHeight(renderer);
   const int previewYOffset =
       orientedTop + std::max(static_cast<int>(previewSettings.screenMarginVertical),
                              clockReservation > 0 ? clockReservation + ReaderUtils::TOP_CLOCK_TEXT_PADDING : 0);
-  const int previewWidth =
-      std::max(1, renderer.getScreenWidth() - static_cast<int>(previewSettings.screenMarginHorizontal) * 2);
+  // The reader's own text box (computeReaderViewportLayout): the screen's
+  // viewable area minus the margins, so the preview breaks lines where the page will.
+  const int previewLeft = orientedLeft + previewSettings.screenMarginHorizontal;
+  const int previewWidth = std::max(1, renderer.getScreenWidth() - orientedLeft - orientedRight -
+                                           static_cast<int>(previewSettings.screenMarginHorizontal) * 2);
   renderer.beginTextClip(0, 0, renderer.getScreenWidth(), renderer.getScreenHeight() - drawerHeight());
-  previewModel->renderText(renderer, previewFontId, previewSettings.screenMarginHorizontal, previewYOffset,
-                           previewWidth, previewSettings.lineHeightPercent, previewSettings.wordSpacing,
+  previewModel->renderText(renderer, previewFontId, previewLeft, previewYOffset, previewWidth,
+                           previewSettings.lineHeightPercent, previewSettings.wordSpacing,
                            previewSettings.paragraphAlignment, previewSettings.focusReadingEnabled,
                            previewSettings.guideReadingEnabled, ReaderUtils::readerForegroundBlack());
   renderer.endTextClip();
