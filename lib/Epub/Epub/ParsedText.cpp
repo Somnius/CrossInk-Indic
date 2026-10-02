@@ -203,8 +203,12 @@ std::vector<size_t> cjkCharacterBreakByteOffsets(const std::string& text) {
 }
 
 int computeJustifyExtra(const int spareSpace, const size_t gapCount) {
-  if (gapCount < MIN_JUSTIFY_GAPS || spareSpace <= 0) return 0;
-  return spareSpace / static_cast<int>(gapCount);
+  if (gapCount < MIN_JUSTIFY_GAPS || spareSpace == 0) return 0;
+  if (spareSpace > 0) return spareSpace / static_cast<int>(gapCount);
+  // A line the breaker filled past its natural width (ParsedText::SPACE_SHRINK_PERCENT):
+  // shrink every gap by the same amount, rounded so the line never overflows.
+  const int gaps = static_cast<int>(gapCount);
+  return -((-spareSpace + gaps - 1) / gaps);
 }
 
 bool isBase64LikeChar(const char c) {
@@ -1259,6 +1263,9 @@ bool ParsedText::computeHyphenatedLineBreaks(const GfxRenderer& renderer, const 
   while (currentIndex < wordWidths.size()) {
     const size_t lineStart = currentIndex;
     int lineWidth = 0;
+    // How far word spaces may shrink to fill this line before a word is split
+    // or moved down (any alignment; extractLine applies the shrink).
+    int shrinkAllowance = 0;
 
     // First line has reduced width due to text-indent
     const int effectivePageWidth = isFirstLine ? pageWidth - firstLineIndent : pageWidth;
@@ -1267,22 +1274,28 @@ bool ParsedText::computeHyphenatedLineBreaks(const GfxRenderer& renderer, const 
     while (currentIndex < wordWidths.size()) {
       const bool isFirstWord = currentIndex == lineStart;
       int spacing = 0;
+      int spacingShrink = 0;
       if (!isFirstWord) {
         spacing = naturalGapBeforeToken(renderer, fontId, words[currentIndex - 1], words[currentIndex],
                                         wordStyles[currentIndex - 1], continuesVec[currentIndex],
                                         noSpaceBeforeVec[currentIndex], wordGuideDotBefore[currentIndex], wordSpacing);
+        if (gapSlotsBeforeToken(words[currentIndex], continuesVec[currentIndex], noSpaceBeforeVec[currentIndex],
+                                wordGuideDotBefore[currentIndex]) > 0) {
+          spacingShrink = spacing * SPACE_SHRINK_PERCENT / 100;
+        }
       }
       const int candidateWidth = spacing + wordWidths[currentIndex];
 
-      // Word fits on current line
-      if (lineWidth + candidateWidth <= effectivePageWidth) {
+      // Word fits on current line (its spaces may shrink a little)
+      if (lineWidth + candidateWidth <= effectivePageWidth + shrinkAllowance + spacingShrink) {
         lineWidth += candidateWidth;
+        shrinkAllowance += spacingShrink;
         ++currentIndex;
         continue;
       }
 
       // Word would overflow — try to split based on hyphenation points
-      const int availableWidth = effectivePageWidth - lineWidth - spacing;
+      const int availableWidth = effectivePageWidth + shrinkAllowance + spacingShrink - lineWidth - spacing;
       const bool allowFallbackBreaks = isFirstWord;  // Only for first word on line
 
       if (availableWidth > 0 &&
@@ -1629,9 +1642,15 @@ bool ParsedText::extractLine(Arena& scratchArena, const size_t breakIndex, const
 
   // Keep the visual overhang of edge ruby groups inside the page margins.
   const int spareSpace = effectivePageWidth - extraStartOffset - extraEndOffset - lineWordWidthSum - totalNaturalGaps;
-  const int justifyExtra = (effectiveAlignment == CssTextAlign::Justify && !isLastLine)
-                               ? computeJustifyExtra(spareSpace, actualGapCount)
-                               : 0;
+  // Justified lines spread their spare space over the gaps. A line the breaker
+  // filled past its natural width (shrinkable spaces) shrinks them, in any
+  // alignment and even when it is the last line.
+  const bool justified = effectiveAlignment == CssTextAlign::Justify;
+  const int justifyExtra =
+      (justified && !isLastLine) || spareSpace < 0 ? computeJustifyExtra(spareSpace, actualGapCount) : 0;
+  // Width the line's words and gaps take as drawn (natural, or shrunk to fit).
+  const int drawnLineWidth =
+      lineWordWidthSum + totalNaturalGaps + (justifyExtra < 0 ? justifyExtra * static_cast<int>(actualGapCount) : 0);
 
   visualOrderScratch.clear();
   visualOrderScratch.reserve(lineWordCount);
@@ -1780,9 +1799,9 @@ bool ParsedText::extractLine(Arena& scratchArena, const size_t breakIndex, const
       int xpos = effectivePageWidth;
       if (effectiveAlignment == CssTextAlign::Left) {
         // Explicit left alignment in RTL context
-        xpos = lineWordWidthSum + totalNaturalGaps;
+        xpos = drawnLineWidth;
       } else if (effectiveAlignment == CssTextAlign::Center) {
-        xpos = (effectivePageWidth + lineWordWidthSum + totalNaturalGaps) / 2;
+        xpos = (effectivePageWidth + drawnLineWidth) / 2;
       }
       // For Right and Justify, start from right edge (xpos = effectivePageWidth)
 
@@ -1804,9 +1823,9 @@ bool ParsedText::extractLine(Arena& scratchArena, const size_t breakIndex, const
       // LTR: position words from left to right
       int xpos = firstLineIndent + extraStartOffset;
       if (effectiveAlignment == CssTextAlign::Right) {
-        xpos = effectivePageWidth - lineWordWidthSum - totalNaturalGaps;
+        xpos = std::max(0, effectivePageWidth - drawnLineWidth);
       } else if (effectiveAlignment == CssTextAlign::Center) {
-        xpos = (effectivePageWidth - lineWordWidthSum - totalNaturalGaps) / 2;
+        xpos = std::max(0, (effectivePageWidth - drawnLineWidth) / 2);
       }
 
       for (size_t wordIdx = 0; wordIdx < lineWordCount; ++wordIdx) {

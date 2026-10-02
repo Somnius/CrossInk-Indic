@@ -310,7 +310,8 @@ into the reading fonts, and pages store that font's glyph tokens, so the
 version byte carries the script: `0xA0` + 0 Devanagari, 1 Bengali, 2 Gurmukhi,
 3 Gujarati, 4 Oriya, 5 Tamil, 6 Telugu, 7 Kannada, 8 Malayalam, 9 Sinhala.
 Flashing a build of another script rebuilds the cache. Suspended partials use
-`0xD0` + the same index.
+`0xD0` + the same index. These versions also cover the line breaker letting word
+spaces shrink by up to a third to fill a line before hyphenating.
 
 ### Version 80 (CrossInk-Indic.1)
 

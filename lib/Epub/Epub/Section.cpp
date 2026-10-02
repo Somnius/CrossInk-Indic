@@ -40,7 +40,8 @@ constexpr uint32_t SECTION_CACHE_MAGIC = 0x535843FF;  // bytes: 0xFF, "CXS"
 //      laid out with replacement glyphs (or another build's glyph tokens) rebuild.
 //  0xA0 + script (CrossInk-Indic.2): each build compiles one Indic script, and
 //      cached pages hold that script font's glyph tokens, so a build of another
-//      script (same font IDs) must not reuse them.
+//      script (same font IDs) must not reuse them. Also covers word spaces
+//      shrinking up to a third to fill lines (ParsedText::SPACE_SHRINK_PERCENT).
 #if defined(CROSSINK_SCRIPT_BENGALI)
 constexpr uint8_t SCRIPT_BUILD_INDEX = 1;
 #elif defined(CROSSINK_SCRIPT_GURMUKHI)

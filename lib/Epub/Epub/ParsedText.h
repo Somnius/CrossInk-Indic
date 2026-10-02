@@ -107,6 +107,11 @@ class ParsedText {
   bool calculateWordWidths(ArenaVector<uint16_t>& wordWidths, const GfxRenderer& renderer, int fontId);
 
  public:
+  // A line may shrink each word space by up to this much (a third, as in
+  // classic typesetting) to fit one more word or a longer hyphen piece before
+  // a word is split or moved to the next line.
+  static constexpr int SPACE_SHRINK_PERCENT = 33;
+
   explicit ParsedText(const bool extraParagraphSpacing, const bool forceParagraphIndents = false,
                       const bool hyphenationEnabled = false, const bool focusReadingEnabled = false,
                       const bool guideReadingEnabled = false, const uint8_t wordSpacing = 0,

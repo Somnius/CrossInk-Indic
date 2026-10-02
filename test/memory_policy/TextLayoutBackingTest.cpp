@@ -88,3 +88,25 @@ TEST_F(TextLayoutBackingTest, AllocationFailureReturnsWithoutPartialLinesOrLeaks
   EXPECT_TRUE(fakeheap::live.empty());
 }
 #endif
+
+// Word spaces shrink (up to ParsedText::SPACE_SHRINK_PERCENT) to fill a line
+// before a word moves down, in any alignment, without overflowing the line.
+TEST_F(TextLayoutBackingTest, SpacesShrinkToFitOneMoreWord) {
+  for (const CssTextAlign alignment : {CssTextAlign::Left, CssTextAlign::Justify, CssTextAlign::Center}) {
+    BlockStyle style;
+    style.alignment = alignment;
+    // Font 5 in the stub: 11 px per letter, 8 px spaces. "aa bb cc" is 82 px
+    // with natural spaces; at 79 px it fits only with each space 2 px narrower.
+    ParsedText text(false, false, /*hyphenationEnabled=*/true, false, false, 0, style);
+    for (const char* word : {"aa", "bb", "cc"}) text.addWord(word, EpdFontFamily::REGULAR, false, false, false, 0, 0);
+    GfxRenderer renderer;
+    std::vector<std::shared_ptr<TextBlock>> lines;
+    ASSERT_TRUE(text.layoutAndExtractLines(renderer, 5, 79, [&](std::shared_ptr<TextBlock> block, uint32_t, uint32_t) {
+      lines.push_back(std::move(block));
+    }));
+    ASSERT_EQ(lines.size(), 1U) << static_cast<int>(alignment);
+    ASSERT_EQ(lines[0]->wordCount(), 3U);
+    EXPECT_GE(lines[0]->wordXpos(0), 0);
+    EXPECT_LE(lines[0]->wordXpos(2) + 22, 79) << static_cast<int>(alignment);
+  }
+}
