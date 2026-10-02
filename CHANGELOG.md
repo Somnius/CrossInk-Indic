@@ -13,11 +13,17 @@ All 13 major Indic languages: one firmware per language, and one reading-only fi
 
 ### Changed
 
+- Lines fill up before a word is hyphenated or moved to the next line: word spaces may shrink by up to a third, in every alignment (from the Greek builds).
+- The reader menu's live preview on touch devices lays text out like the page: it joins words the page split across lines, hyphenates, uses the same spacing and the page's real text width (from the Greek builds).
+- Long translations no longer run off the screen: the Home screen's empty-library text and the button hints are cut with "…", and popups wrap onto up to three lines.
 - Wi-Fi updates only install a release asset of the same variant, so an update never swaps the language or script.
+- A new `-indic.N` release counts as newer than the previous one for Wi-Fi updates.
 - The "menu font needed" message no longer names Hindi fonts.
 
 ### Fixed
 
+- Flashing a build with a different script rebuilds cached book pages instead of drawing the old script's glyphs (section cache `0xA0` + script).
+- The font preview checks the language's own script instead of a Devanagari letter.
 - Zero-width joiner and non-joiner (used in Sinhala, Telugu, Kannada and Malayalam spelling) are part of the built-in fonts, so they never draw as boxes when text is drawn without shaping.
 
 ## [v1.6.0-indic.1] - 2026-10-02

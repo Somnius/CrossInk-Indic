@@ -3216,13 +3216,11 @@ void XMLCALL ChapterHtmlSlimParser::characterData(void* userData, const XML_Char
   }
 
   // If a paragraph keeps growing, perform the layout and consume all but the last line.
-  // This keeps memory bounded for chapters with very long XHTML text runs even when
-  // the text does not contain enough word boundaries to trip the word-count guard.
-  if (self->partWordBufferIndex > 0 &&
-      static_cast<size_t>(self->currentTextRunBytes) + static_cast<size_t>(self->partWordBufferIndex) >
-          self->textRunBytesBeforeLayoutLimit()) {
-    self->flushPartWordBuffer();
-  }
+  // This keeps memory bounded for chapters with very long XHTML text runs.
+  // The word still being read stays in partWordBuffer: expat hands text over in
+  // read-sized pieces, so flushing it here split words wherever a piece ended
+  // ("કીનાર" + "ા", "exam" + "ple"), drawn as two words. The buffer is capped at
+  // MAX_WORD_SIZE and flushes itself (UTF-8 safely) above, so memory stays bounded.
   self->flushLongTextRunIfNeeded();
 }
 

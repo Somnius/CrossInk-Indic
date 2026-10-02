@@ -3,6 +3,7 @@
 #include <GfxRenderer.h>
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
 #include <memory>
 #include <string>
@@ -252,3 +253,21 @@ TEST_F(ChapterHtmlSlimParserTest, HiddenNestedListDoesNotResetOuterCounter) {
 }
 
 }  // namespace
+
+// expat hands text over in read-sized pieces. Once a paragraph is past the
+// layout byte limit, a word that straddles two pieces must still come out as
+// one word ("કીનારા" used to become "કીનાર" + "ા").
+TEST_F(ChapterHtmlSlimParserTest, LongParagraphKeepsAWordSplitAcrossTextPiecesWhole) {
+  std::string first;
+  while (first.size() < 3000) first += "lorem ";  // over the 2048-byte layout limit
+  first += "spli";
+  ChapterHtmlSlimParser::characterData(&parser, first.c_str(), static_cast<int>(first.size()));
+  constexpr char second[] = "tword end ";
+  ChapterHtmlSlimParser::characterData(&parser, second, static_cast<int>(sizeof(second) - 1));
+  parser.flushPartWordBuffer();
+
+  const auto& words = parser.currentTextBlock->words;
+  EXPECT_NE(std::find(words.begin(), words.end(), "splitword"), words.end());
+  EXPECT_EQ(std::find(words.begin(), words.end(), "spli"), words.end());
+  EXPECT_EQ(std::find(words.begin(), words.end(), "tword"), words.end());
+}
