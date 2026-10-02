@@ -644,7 +644,7 @@ void SettingsActivity::openLanguagePicker() {
     SETTINGS.language = langIndex;
     SETTINGS.saveToFile();
     if (I18N.isShowingFallbackStrings()) {
-      // Hindi was chosen but no Devanagari font is loaded: say why the menus
+      // An Indic language was chosen but no font for its script is loaded: say why the menus
       // stay in English (the alert itself is English for the same reason).
       snprintf(APP_STATE.pendingAlertTitle, sizeof(APP_STATE.pendingAlertTitle), "%s",
                tr(STR_SCRIPT_FONT_NEEDED_TITLE));

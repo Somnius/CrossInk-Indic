@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+#include "AllScriptsExpected.h"
 #include "ComplexShaper.h"
 #include "EpdFont.h"
 #include "ExpectedShaping.h"
@@ -25,7 +26,16 @@
 #include "FontDecompressor.h"
 #include "ShapingTokens.h"
 #include "Utf8.h"
+#include "builtinFonts/bengali_14_regular.h"
 #include "builtinFonts/devanagari_14_regular.h"
+#include "builtinFonts/gujarati_14_regular.h"
+#include "builtinFonts/gurmukhi_14_regular.h"
+#include "builtinFonts/kannada_14_regular.h"
+#include "builtinFonts/malayalam_14_regular.h"
+#include "builtinFonts/oriya_14_regular.h"
+#include "builtinFonts/sinhala_14_regular.h"
+#include "builtinFonts/tamil_14_regular.h"
+#include "builtinFonts/telugu_14_regular.h"
 
 namespace {
 
@@ -98,9 +108,87 @@ void check(const char* label, bool (*shape)(void*, const char*, std::string*), v
                 static_cast<unsigned long>(micros() - start));
 }
 
+// Built-in fonts of every script: glyph ids against HarfBuzz (gen_all_scripts.py).
+struct BuiltinScript {
+  const char* name;
+  const EpdFontData* font;
+  const uint8_t* layout;
+  const ScriptWord* words;
+  size_t wordCount;
+  const char* paragraph;
+};
+
+#define BUILTIN_SCRIPT(s) \
+  {#s, &s##_14_regular, s##Layout, k_##s##_words, sizeof(k_##s##_words) / sizeof(k_##s##_words[0]), k_##s##_paragraph},
+const BuiltinScript kBuiltinScripts[] = {ALL_SCRIPTS_EXPECTED(BUILTIN_SCRIPT)};
+#undef BUILTIN_SCRIPT
+
+void checkWords(const BuiltinScript& script) {
+  int ok = 0;
+  const uint32_t start = micros();
+  for (size_t w = 0; w < script.wordCount; w++) {
+    const ScriptWord& want = script.words[w];
+    std::string out;
+    if (!script.font->shapeHandler(script.font->shapeCtx, want.utf8, &out)) {
+      Serial.printf("FAIL %s: could not shape word %u\n", script.name, static_cast<unsigned>(w));
+      gFailures++;
+      continue;
+    }
+    const auto got = decode(out);
+    bool same = got.size() == want.count;
+    for (size_t i = 0; same && i < got.size(); i++) same = got[i].gid == want.gids[i];
+    if (same) {
+      ok++;
+    } else {
+      Serial.printf("FAIL %s: word %u differs from HarfBuzz\n", script.name, static_cast<unsigned>(w));
+      gFailures++;
+    }
+  }
+  Serial.printf("built-in %-10s %2d/%u words match HarfBuzz (%lu us), layout in flash: %s\n", script.name, ok,
+                static_cast<unsigned>(script.wordCount), static_cast<unsigned long>(micros() - start),
+                esp_ptr_in_drom(script.layout) ? "yes" : "no");
+  if (!esp_ptr_in_drom(script.layout)) gFailures++;
+}
+
+// Glyph bitmaps of a shaped paragraph, prewarmed as the reader does, then on demand.
+void checkBitmaps(const BuiltinScript& script) {
+  const EpdFontData* data = script.font;
+  std::string shaped;
+  data->shapeHandler(data->shapeCtx, script.paragraph, &shaped);
+  FontDecompressor decompressor;
+  decompressor.init();
+  uint32_t largestGroup = 0;
+  for (uint16_t g = 0; g < data->groupCount; g++) {
+    if (data->groups[g].uncompressedSize > largestGroup) largestGroup = data->groups[g].uncompressedSize;
+  }
+  const EpdFont font(data);
+  for (int pass = 0; pass < 2; pass++) {
+    decompressor.clearCache();
+    if (pass == 0) decompressor.prewarmCache(data, shaped.c_str());
+    int glyphs = 0;
+    int missing = 0;
+    const auto* p = reinterpret_cast<const unsigned char*>(shaped.c_str());
+    while (const uint32_t cp = utf8NextCodepoint(&p)) {
+      if (!shaping::isGlyphToken(cp)) continue;
+      const EpdGlyph* glyph = font.findGlyph(cp);
+      glyphs++;
+      if (glyph == nullptr ||
+          (glyph->dataLength > 0 &&
+           decompressor.getBitmap(data, glyph, static_cast<uint32_t>(glyph - data->glyph)) == nullptr)) {
+        missing++;
+      }
+    }
+    Serial.printf("bitmaps %-10s %s: %d glyphs, %d missing (%u groups, largest %lu bytes)\n", script.name,
+                  pass == 0 ? "prewarmed" : "on demand", glyphs, missing, data->groupCount,
+                  static_cast<unsigned long>(largestGroup));
+    if (missing != 0 || glyphs == 0) gFailures++;
+  }
+  decompressor.clearCache();
+}
+
 // --- SD-card path: FlashBlobCache, as SdCardFont::loadShapingBlob ---
-const uint8_t* const kLayout = devanagariSansLayout;
-constexpr uint32_t kLayoutLength = sizeof(devanagariSansLayout);
+const uint8_t* const kLayout = devanagariLayout;
+constexpr uint32_t kLayoutLength = sizeof(devanagariLayout);
 
 bool readLayout(void*, const uint32_t offset, uint8_t* buf, const uint32_t length) {
   if (offset + length > kLayoutLength) return false;
@@ -139,10 +227,9 @@ void setup() {
   Serial.println("\n=== C3 shaping test (no PSRAM) ===");
   heap("start");
 
-  // 1. Built-in font data, layout read in place from flash.
-  Serial.printf("built-in layout at %p (in flash: %s)\n", devanagariSansLayout,
-                esp_ptr_in_drom(devanagariSansLayout) ? "yes" : "no");
-  check("built-in devanagari_14_regular", devanagari_14_regular.shapeHandler, devanagari_14_regular.shapeCtx, false);
+  // 1. Built-in font data of every script, layouts read in place from flash.
+  check("built-in devanagari fixture", devanagari_14_regular.shapeHandler, devanagari_14_regular.shapeCtx, false);
+  for (const BuiltinScript& script : kBuiltinScripts) checkWords(script);
   heap("after built-in");
 
   // 2. SD-card path through FlashBlobCache, at the fixture's size. Same layout
@@ -182,48 +269,11 @@ void setup() {
   ComplexShaper::releaseAll();
   heap("after releaseAll");
 
-  // 3. Drawing: glyph bitmaps of a shaped paragraph from the compressed
-  // built-in Devanagari font, prewarmed as the reader does and on demand.
-  {
-    static const char* kParagraph =
-        "जुम्मन शेख और अलगू चौधरी में गाढ़ी मित्रता थी। साझेमें खेती होती थी। कुछ लेन-देनमें भी साझा था। "
-        "एकको दूसरेपर अटल विश्वास था। क्षत्रिय, त्रिकोण, ज्ञान, श्रम, द्वार, शुद्ध, ब्रह्म, धर्म, कार्य, पूर्व।";
-    std::string shaped;
-    devanagari_14_regular.shapeHandler(devanagari_14_regular.shapeCtx, kParagraph, &shaped);
-    FontDecompressor decompressor;
-    decompressor.init();
-    uint32_t largestGroup = 0;
-    for (uint16_t g = 0; g < devanagari_14_regular.groupCount; g++) {
-      if (devanagari_14_regular.groups[g].uncompressedSize > largestGroup) {
-        largestGroup = devanagari_14_regular.groups[g].uncompressedSize;
-      }
-    }
-    Serial.printf("devanagari_14_regular: %u groups, largest inflates to %lu bytes\n", devanagari_14_regular.groupCount,
-                  static_cast<unsigned long>(largestGroup));
-    const EpdFont font(&devanagari_14_regular);
-    for (int pass = 0; pass < 2; pass++) {
-      decompressor.clearCache();
-      if (pass == 0) decompressor.prewarmCache(&devanagari_14_regular, shaped.c_str());
-      int glyphs = 0;
-      int missing = 0;
-      const auto* p = reinterpret_cast<const unsigned char*>(shaped.c_str());
-      while (const uint32_t cp = utf8NextCodepoint(&p)) {
-        if (!shaping::isGlyphToken(cp)) continue;
-        const EpdGlyph* glyph = font.findGlyph(cp);
-        glyphs++;
-        if (glyph == nullptr ||
-            (glyph->dataLength > 0 &&
-             decompressor.getBitmap(&devanagari_14_regular, glyph,
-                                    static_cast<uint32_t>(glyph - devanagari_14_regular.glyph)) == nullptr)) {
-          missing++;
-        }
-      }
-      Serial.printf("bitmaps %s: %d glyphs, %d missing\n", pass == 0 ? "prewarmed" : "on demand", glyphs, missing);
-      if (missing != 0 || glyphs == 0) gFailures++;
-      heap(pass == 0 ? "after prewarmed bitmaps" : "after on-demand bitmaps");
-    }
-    decompressor.clearCache();
-  }
+  // 3. Drawing: glyph bitmaps of a shaped paragraph from each compressed
+  // built-in font, prewarmed as the reader does and on demand.
+  for (const BuiltinScript& script : kBuiltinScripts) checkBitmaps(script);
+  ComplexShaper::releaseAll();
+  heap("after bitmaps");
 
   Serial.printf("C3 SHAPING: %s (%d failure(s))\n", gFailures == 0 ? "PASS" : "FAIL", gFailures);
 }

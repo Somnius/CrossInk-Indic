@@ -1,0 +1,10 @@
+Source URL: https://ta.wikisource.org/wiki/பாரதியார்_கதைகள்/காக்காய்ப்_பார்லிமெண்ட்
+Fetched via: MediaWiki API action=parse&prop=text (rendered HTML, so transcluded scan pages are included), converted to plain text
+Work: காக்காய்ப் பார்லிமெண்ட் (Kakkai Parliament, 'The Crows' Parliament'), short prose sketch; in the compilation பாரதியார் கதைகள் (Poompuhar Prasuram, 1977)
+Author: Subramania Bharati (சுப்பிரமணிய பாரதி)
+Author's death year: 1921
+First publication: Published in a periodical during Bharati's lifetime (before 1921). The exact first date or venue could not be confirmed. The 1977 compilation only adds a publisher's preface, which is not used here
+Extent / edits: Complete piece (about 640 words).
+Story word count (whitespace tokens, excl. title): 642
+Public-domain status: Bharati died in 1921, so the term in India ran out at the end of 1981. The Madras (Tamil Nadu) government also nationalised his works in 1949, putting them in the public domain. The piece was published before his death, which was before 1929, so it is public domain in the US. Caveat: the exact first-publication date is not verified.
+Normalisation: Unicode NFC; wiki markup, headers, page numbers and footnote markers stripped; paragraphs separated by one blank line; first line = title — author.

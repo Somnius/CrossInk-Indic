@@ -26,12 +26,21 @@ class I18n {
   Language getLanguage() const { return _language; }
   void setLanguage(Language lang);
 
-  // Scripts the built-in UI fonts lack (Devanagari) need an SD-card font. While
-  // none is loaded, get() serves English for those languages instead of boxes;
-  // getLanguage() still reports the language the reader chose.
-  static bool needsScriptFont(Language lang);
-  // Written when UI fonts load (main loop), read while rendering (render task).
-  void setScriptFontAvailable(bool available) { _scriptFontAvailable.store(available, std::memory_order_relaxed); }
+  // Languages in scripts the stock UI fonts lack (the Indic scripts, Sinhala)
+  // need a font that has them: built in for one script per CrossInk-Indic
+  // build, or an SD-card font's UI fallback. While none can draw the current
+  // language, get() serves English instead of boxes; getLanguage() still
+  // reports the language the reader chose.
+  //
+  // scriptProbe(): a letter of the language's script (0: Latin/Cyrillic/... ).
+  static uint32_t scriptProbe(Language lang);
+  static bool needsScriptFont(Language lang) { return scriptProbe(lang) != 0; }
+  // Whether every UI font size can draw a codepoint (set by main.cpp).
+  using ScriptFontCheck = bool (*)(uint32_t codepoint);
+  void setScriptFontCheck(ScriptFontCheck check) { _scriptFontCheck = check; }
+  // Re-evaluates the current language's script against the UI fonts. Called
+  // when the UI fonts change; setLanguage() calls it too.
+  void refreshScriptFont();
   bool isShowingFallbackStrings() const {
     return !_scriptFontAvailable.load(std::memory_order_relaxed) && needsScriptFont(_language);
   }
@@ -47,6 +56,7 @@ class I18n {
 
   Language _language;
   std::atomic<bool> _scriptFontAvailable{false};
+  ScriptFontCheck _scriptFontCheck = nullptr;
 };
 
 // Convenience macros

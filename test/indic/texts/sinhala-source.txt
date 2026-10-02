@@ -1,0 +1,10 @@
+Source URL: https://wikisource.org/wiki/සද්ධර්ම_රත්නාවලිය/සද්ධර්ම_රත්නාවලිය-_i
+Fetched via: MediaWiki API action=parse&prop=text (rendered HTML, so transcluded scan pages are included), converted to plain text
+Work: සද්ධර්මරත්නාවලිය (Saddharma Ratnavaliya), classical Buddhist prose; opening of the preface (පූර්විකාව)
+Author: Dharmasena Thera (ධර්මසේන හිමි)
+Author's death year: 13th century (exact year unknown)
+First publication: Written in the 13th century, with many printed editions since the 19th century. The modern edition behind the Wikisource transcription is unidentified
+Extent / edits: Excerpt: about 655 words (2 paragraphs). The Wikisource text was converted from a legacy font and is heavily damaged: rakaransaya and yansaya are missing ZWJ, and there are stray glyph characters. About 50 damaged words were repaired by hand: ZWJ conjuncts were restored (ප්‍ර, ක්‍ර, ශාස්ත්‍ර, විද්‍ය-style), stray ZWJs removed, and inline footnote numbers and variant-reading footnotes stripped. Archaic spellings were otherwise left as found. A Sinhala reader should proof it.
+Story word count (whitespace tokens, excl. title): 656
+Public-domain status: NEAREST SAFE OPTION. No text by Piyadasa Sirisena (d. 1946) or another modern public-domain Sinhala author was found on Wikisource (Sinhala lives on multilingual wikisource.org) or on Project Gutenberg. The 13th-century text is public domain everywhere. One caveat: the Wikisource Sinhala community itself has flagged that some hosted editions are modern copyrighted critical editions (e.g. Amavatura, Chitra). This edition's editor is unknown, so there is a small risk of a thin editorial copyright in its particular readings. The editorial footnotes and apparatus were removed.
+Normalisation: Unicode NFC; wiki markup, headers, page numbers and footnote markers stripped; paragraphs separated by one blank line; first line = title — author.

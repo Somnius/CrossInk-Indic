@@ -1,0 +1,10 @@
+Source URL: https://te.wikisource.org/wiki/దిద్దుబాటు
+Fetched via: MediaWiki API action=parse&prop=text (rendered HTML, so transcluded scan pages are included), converted to plain text
+Work: దిద్దుబాటు (Diddubatu), short story
+Author: Gurajada Apparao (గురజాడ అప్పారావు)
+Author's death year: 1915
+First publication: 1910 (Andhra Bharati magazine). It is often called the first modern Telugu short story
+Extent / edits: Complete story (about 700 words). One stray '. .' was fixed.
+Story word count (whitespace tokens, excl. title): 701
+Public-domain status: Gurajada died in 1915, so the term in India ran out at the end of 1975. First published in 1910, so it is public domain in the US.
+Normalisation: Unicode NFC; wiki markup, headers, page numbers and footnote markers stripped; paragraphs separated by one blank line; first line = title — author.

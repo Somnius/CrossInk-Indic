@@ -1,3 +1,25 @@
+## [v1.6.0-indic.2] - 2026-10-02
+
+All 13 major Indic languages: one firmware per language, and one reading-only firmware per script.
+
+### Added
+
+- Built-in fonts for ten scripts: Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam and Sinhala (Noto Sans, regular and bold at every reading size, regular in the UI fonts). Each build carries one script.
+- Menus in Marathi, Nepali, Bengali, Assamese, Punjabi, Gujarati, Odia, Tamil, Telugu, Kannada, Malayalam and Sinhala, all 845 strings each, machine-assisted and proofread like the Hindi ones (two blind back-translations, review against Android's wording).
+- `scripts/build-indic.sh` builds any variant: `lang <code>` (English + that language) or `read <script>` (English menus).
+- `convert-indic-fonts.sh` generates every script's built-in fonts and layout data.
+- The ESP32-C3 QEMU test shapes words in all ten built-in scripts against HarfBuzz and loads every glyph bitmap of a paragraph per script.
+- Simulator test books and public-domain texts for every language (`test/indic`).
+
+### Changed
+
+- Wi-Fi updates only install a release asset of the same variant, so an update never swaps the language or script.
+- The "menu font needed" message no longer names Hindi fonts.
+
+### Fixed
+
+- Zero-width joiner and non-joiner (used in Sinhala, Telugu, Kannada and Malayalam spelling) are part of the built-in fonts, so they never draw as boxes when text is drawn without shaping.
+
 ## [v1.6.0-indic.1] - 2026-10-02
 
 First CrossInk-Indic release: CrossInk v1.6.0 with Hindi built in.

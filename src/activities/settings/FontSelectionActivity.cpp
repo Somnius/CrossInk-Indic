@@ -6,8 +6,8 @@
 
 #include <algorithm>
 #include <cstdio>
-#include <string>
 #include <cstring>
+#include <string>
 
 #include "CrossPointSettings.h"
 #include "MappedInputManager.h"
@@ -263,8 +263,9 @@ void FontSelectionActivity::renderPreviewPane(int top, int height, int fontId, c
   const int maxLines = std::max(1, innerHeight / (lineH + 2));
 
   const char* previewText = I18N.get(StrId::STR_FONT_PREVIEW_TEXT);
-  // The Hindi sample has Devanagari; a font without it previews the English one.
-  if (I18n::needsScriptFont(I18N.getLanguage()) && !renderer.uiFontCanDraw(fontId, 0x0915)) {
+  // The sample is in the language's script; a font without it previews the English one.
+  const uint32_t probe = I18n::scriptProbe(I18N.getLanguage());
+  if (probe != 0 && !renderer.uiFontCanDraw(fontId, probe)) {
     previewText = I18n::getEnglish(StrId::STR_FONT_PREVIEW_TEXT);
   }
   if (auto* fcm = renderer.getFontCacheManager()) {

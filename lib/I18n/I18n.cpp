@@ -60,11 +60,43 @@ void I18n::setLanguage(Language lang) {
   // Keep persisted settings untouched, but make every runtime language-dependent
   // behavior agree with the English string fallback in reduced-language builds.
   _language = isBuiltinLanguage(lang) ? lang : Language::EN;
+  refreshScriptFont();
 }
 
-bool I18n::needsScriptFont(const Language lang) {
+namespace {
+// Language code -> a consonant of its script, and the English name the
+// language picker shows while no font can draw the native one.
+struct ScriptLanguage {
+  const char* code;
+  uint32_t probe;
+  const char* englishName;
+};
+constexpr ScriptLanguage kScriptLanguages[] = {
+    {"HI", 0x0915, "Hindi"},    {"MAR", 0x0915, "Marathi"}, {"NE", 0x0915, "Nepali"},   {"BN", 0x0995, "Bengali"},
+    {"AS", 0x0995, "Assamese"}, {"PA", 0x0A15, "Punjabi"},  {"GU", 0x0A95, "Gujarati"}, {"OR", 0x0B15, "Odia"},
+    {"TA", 0x0B95, "Tamil"},    {"TE", 0x0C15, "Telugu"},   {"KN", 0x0C95, "Kannada"},  {"ML", 0x0D15, "Malayalam"},
+    {"SIN", 0x0D9A, "Sinhala"},
+};
+
+const ScriptLanguage* scriptLanguage(const Language lang) {
   const auto index = static_cast<size_t>(lang);
-  return index < static_cast<size_t>(Language::_COUNT) && strcmp(LANGUAGE_CODES[index], "HI") == 0;
+  if (index >= static_cast<size_t>(Language::_COUNT)) return nullptr;
+  for (const auto& entry : kScriptLanguages) {
+    if (strcmp(LANGUAGE_CODES[index], entry.code) == 0) return &entry;
+  }
+  return nullptr;
+}
+}  // namespace
+
+uint32_t I18n::scriptProbe(const Language lang) {
+  const ScriptLanguage* entry = scriptLanguage(lang);
+  return entry ? entry->probe : 0;
+}
+
+void I18n::refreshScriptFont() {
+  const uint32_t probe = scriptProbe(_language);
+  _scriptFontAvailable.store(probe == 0 || (_scriptFontCheck != nullptr && _scriptFontCheck(probe)),
+                             std::memory_order_relaxed);
 }
 
 const char* I18n::getLanguageName(Language lang) const {
@@ -73,7 +105,9 @@ const char* I18n::getLanguageName(Language lang) const {
     return "???";
   }
   // Without a font for its script the native name would draw as boxes.
-  if (!_scriptFontAvailable.load(std::memory_order_relaxed) && needsScriptFont(lang)) return "Hindi";
+  if (const ScriptLanguage* entry = scriptLanguage(lang)) {
+    if (_scriptFontCheck == nullptr || !_scriptFontCheck(entry->probe)) return entry->englishName;
+  }
   return LANGUAGE_NAMES[index];
 }
 

@@ -202,9 +202,11 @@ void BaseTheme::drawButtonHints(GfxRenderer& renderer, const char* btn1, const c
   for (int i = 0; i < 4; i++) {
     if (labels[i] != nullptr && labels[i][0] != '\0') {
       const int x = buttonPositions[invertText ? 3 - i : i];
-      const int textWidth = renderer.getTextWidth(UI_10_FONT_ID, labels[i]);
+      // Long translations would run into the next button: cut them to fit.
+      const std::string label = renderer.truncatedText(UI_10_FONT_ID, labels[i], buttonWidth - 4);
+      const int textWidth = renderer.getTextWidth(UI_10_FONT_ID, label.c_str());
       const int textX = x + (buttonWidth - 1 - textWidth) / 2;
-      renderer.drawText(UI_10_FONT_ID, textX, textY, labels[i]);
+      renderer.drawText(UI_10_FONT_ID, textX, textY, label.c_str());
     }
   }
 
@@ -740,8 +742,12 @@ void BaseTheme::drawRecentBookCover(GfxRenderer& renderer, Rect rect, const std:
     // No book to continue reading
     const int y =
         bookY + (bookHeight - renderer.getLineHeight(UI_12_FONT_ID) - renderer.getLineHeight(UI_10_FONT_ID)) / 2;
-    renderer.drawCenteredText(UI_12_FONT_ID, y, tr(STR_NO_OPEN_BOOK));
-    renderer.drawCenteredText(UI_10_FONT_ID, y + renderer.getLineHeight(UI_12_FONT_ID), tr(STR_START_READING));
+    // Translations can be wider than the screen: cut them with an ellipsis.
+    const int maxWidth = renderer.getScreenWidth() - 40;
+    renderer.drawCenteredText(UI_12_FONT_ID, y,
+                              renderer.truncatedText(UI_12_FONT_ID, tr(STR_NO_OPEN_BOOK), maxWidth).c_str());
+    renderer.drawCenteredText(UI_10_FONT_ID, y + renderer.getLineHeight(UI_12_FONT_ID),
+                              renderer.truncatedText(UI_10_FONT_ID, tr(STR_START_READING), maxWidth).c_str());
   }
 }
 
@@ -828,8 +834,16 @@ Rect BaseTheme::drawPopup(const GfxRenderer& renderer, const char* message) cons
   const EpdFontFamily::Style popupFontFamily = metrics.popupTextBold ? EpdFontFamily::BOLD : EpdFontFamily::REGULAR;
   // Scale y position proportionally to screen height
   const int y = static_cast<int>(renderer.getScreenHeight() * metrics.popupTopOffsetRatio);
-  const int textWidth = renderer.getTextWidth(UI_12_FONT_ID, message, popupFontFamily);
-  const int textHeight = renderer.getLineHeight(UI_12_FONT_ID);
+  // Long messages (translations especially) wrap onto up to three lines
+  // instead of running off the screen.
+  const int maxTextWidth = renderer.getScreenWidth() - 2 * (marginX + frameThickness + 8);
+  const std::vector<std::string> lines = renderer.wrappedText(UI_12_FONT_ID, message, maxTextWidth, 3, popupFontFamily);
+  int textWidth = 0;
+  for (const auto& line : lines) {
+    textWidth = std::max(textWidth, renderer.getTextWidth(UI_12_FONT_ID, line.c_str(), popupFontFamily));
+  }
+  const int lineHeight = renderer.getLineHeight(UI_12_FONT_ID);
+  const int textHeight = lineHeight * static_cast<int>(std::max<size_t>(1, lines.size()));
   const int w = textWidth + marginX * 2;
   const int h = textHeight + marginY * 2;
   const int x = (renderer.getScreenWidth() - w) / 2;
@@ -844,9 +858,13 @@ Rect BaseTheme::drawPopup(const GfxRenderer& renderer, const char* message) cons
     renderer.fillRect(x, y, w, h, false);
   }
 
-  const int textX = x + (w - textWidth) / 2;
-  const int textY = y + marginY + metrics.popupTextBaselineOffsetY;
-  renderer.drawText(UI_12_FONT_ID, textX, textY, message, metrics.popupTextInverted, popupFontFamily);
+  int textY = y + marginY + metrics.popupTextBaselineOffsetY;
+  for (const auto& line : lines) {
+    const int lineWidth = renderer.getTextWidth(UI_12_FONT_ID, line.c_str(), popupFontFamily);
+    renderer.drawText(UI_12_FONT_ID, x + (w - lineWidth) / 2, textY, line.c_str(), metrics.popupTextInverted,
+                      popupFontFamily);
+    textY += lineHeight;
+  }
   renderer.displayBuffer();
   return Rect{x, y, w, h};
 }

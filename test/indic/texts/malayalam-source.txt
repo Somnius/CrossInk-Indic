@@ -1,0 +1,10 @@
+Source URL: https://ml.wikisource.org/wiki/ഇന്ദുലേഖ/ഒരു_കോപിഷ്ഠന്റെ_ശപഥം
+Fetched via: MediaWiki API action=parse&prop=text (rendered HTML, so transcluded scan pages are included), converted to plain text
+Work: ഇന്ദുലേഖ (Indulekha), novel; chapter 3, ഒരു കോപിഷ്ഠന്റെ ശപഥം
+Author: O. Chandu Menon (ഒ. ചന്തുമേനോൻ)
+Author's death year: 1899
+First publication: 1889 (the second edition, 1890, is the basis of the Wikisource text)
+Extent / edits: Complete chapter (about 715 words). The chapter-number heading was folded into the title line. Fixes: one Malayalam digit nine (൯), misused for chillu ൻ, was replaced with ൻ, and stray spaces before punctuation were removed. The old orthography (word-final ് samvruthokaram, as in 'മൂന്നു്') is kept on purpose.
+Story word count (whitespace tokens, excl. title): 716
+Public-domain status: Chandu Menon died in 1899, so the term in India ran out at the end of 1959. First published in 1889, so it is public domain in the US.
+Normalisation: Unicode NFC; wiki markup, headers, page numbers and footnote markers stripped; paragraphs separated by one blank line; first line = title — author.

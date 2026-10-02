@@ -49,3 +49,4 @@ dist-publish/
 /CMakeLists.txt
 /dependencies.lock
 /sdkconfig.*
+build-indic/

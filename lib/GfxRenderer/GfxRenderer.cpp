@@ -93,8 +93,7 @@ const EpdFontData* fontDataFor(const std::map<int, EpdFontFamily>& fonts, const 
     const EpdFontData* regular = it->second.getData(EpdFontFamily::REGULAR);
     if (regular != nullptr && regular->shapeHandler != nullptr) return regular;
     // Built-in reading families take complex scripts from a shared fallback.
-    const EpdFontData* shared = it->second.getFallbackData(style);
-    if (shared != nullptr && shared->shapeHandler != nullptr) return shared;
+    if (const EpdFontData* shared = it->second.getShapingFallbackData(style)) return shared;
   }
   return data;
 }

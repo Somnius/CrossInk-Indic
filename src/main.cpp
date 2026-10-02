@@ -176,84 +176,91 @@ static void logBootHeap(const char* stage) {
 }
 
 // Fonts
-// Shared Devanagari for the built-in reading families (their EpdFontFamily
-// fallback): one copy per size serves Bitter and Lexend Deca alike.
-EpdFont devanagari10RegularFont(&devanagari_10_regular);
-EpdFont devanagari10BoldFont(&devanagari_10_bold);
-EpdFont devanagari12RegularFont(&devanagari_12_regular);
-EpdFont devanagari12BoldFont(&devanagari_12_bold);
-EpdFont devanagari14RegularFont(&devanagari_14_regular);
-EpdFont devanagari14BoldFont(&devanagari_14_bold);
-EpdFont devanagari16RegularFont(&devanagari_16_regular);
-EpdFont devanagari16BoldFont(&devanagari_16_bold);
+// The Indic script compiled into this build (builtinFonts/indic_script.h):
+// one copy per size serves Bitter and Lexend Deca as their fallback, and the
+// UI fonts take it as their script fallback.
+EpdFont indic10RegularFont(&INDIC_READ(10, regular));
+EpdFont indic10BoldFont(&INDIC_READ(10, bold));
+EpdFont indic12RegularFont(&INDIC_READ(12, regular));
+EpdFont indic12BoldFont(&INDIC_READ(12, bold));
+EpdFont indic14RegularFont(&INDIC_READ(14, regular));
+EpdFont indic14BoldFont(&INDIC_READ(14, bold));
+EpdFont indic16RegularFont(&INDIC_READ(16, regular));
+EpdFont indic16BoldFont(&INDIC_READ(16, bold));
+EpdFont indicUi8Font(&INDIC_UI(8));
+EpdFont indicUi10Font(&INDIC_UI(10));
+EpdFont indicUi12Font(&INDIC_UI(12));
 EpdFont lexenddeca10RegularFont(&lexenddeca_10_regular);
 EpdFont lexenddeca10BoldFont(&lexenddeca_10_bold);
 EpdFont lexenddeca10ItalicFont(&lexenddeca_10_italic);
 EpdFont lexenddeca10BoldItalicFont(&lexenddeca_10_bolditalic);
 EpdFontFamily lexenddeca10FontFamily(&lexenddeca10RegularFont, &lexenddeca10BoldFont, &lexenddeca10ItalicFont,
-                                     &lexenddeca10BoldItalicFont, &devanagari10RegularFont, &devanagari10BoldFont);
+                                     &lexenddeca10BoldItalicFont, &indic10RegularFont, &indic10BoldFont);
 EpdFont lexenddeca12RegularFont(&lexenddeca_12_regular);
 EpdFont lexenddeca12BoldFont(&lexenddeca_12_bold);
 EpdFont lexenddeca12ItalicFont(&lexenddeca_12_italic);
 EpdFont lexenddeca12BoldItalicFont(&lexenddeca_12_bolditalic);
 EpdFontFamily lexenddeca12FontFamily(&lexenddeca12RegularFont, &lexenddeca12BoldFont, &lexenddeca12ItalicFont,
-                                     &lexenddeca12BoldItalicFont, &devanagari12RegularFont, &devanagari12BoldFont);
+                                     &lexenddeca12BoldItalicFont, &indic12RegularFont, &indic12BoldFont);
 EpdFont lexenddeca14RegularFont(&lexenddeca_14_regular);
 EpdFont lexenddeca14BoldFont(&lexenddeca_14_bold);
 EpdFont lexenddeca14ItalicFont(&lexenddeca_14_italic);
 EpdFont lexenddeca14BoldItalicFont(&lexenddeca_14_bolditalic);
 EpdFontFamily lexenddeca14FontFamily(&lexenddeca14RegularFont, &lexenddeca14BoldFont, &lexenddeca14ItalicFont,
-                                     &lexenddeca14BoldItalicFont, &devanagari14RegularFont, &devanagari14BoldFont);
+                                     &lexenddeca14BoldItalicFont, &indic14RegularFont, &indic14BoldFont);
 EpdFont lexenddeca16RegularFont(&lexenddeca_16_regular);
 EpdFont lexenddeca16BoldFont(&lexenddeca_16_bold);
 EpdFont lexenddeca16ItalicFont(&lexenddeca_16_italic);
 EpdFont lexenddeca16BoldItalicFont(&lexenddeca_16_bolditalic);
 EpdFontFamily lexenddeca16FontFamily(&lexenddeca16RegularFont, &lexenddeca16BoldFont, &lexenddeca16ItalicFont,
-                                     &lexenddeca16BoldItalicFont, &devanagari16RegularFont, &devanagari16BoldFont);
+                                     &lexenddeca16BoldItalicFont, &indic16RegularFont, &indic16BoldFont);
 EpdFont bitter10RegularFont(&bitter_10_regular);
 EpdFont bitter10BoldFont(&bitter_10_bold);
 EpdFont bitter10ItalicFont(&bitter_10_italic);
 EpdFont bitter10BoldItalicFont(&bitter_10_bolditalic);
 EpdFontFamily bitter10FontFamily(&bitter10RegularFont, &bitter10BoldFont, &bitter10ItalicFont, &bitter10BoldItalicFont,
-                                 &devanagari10RegularFont, &devanagari10BoldFont);
+                                 &indic10RegularFont, &indic10BoldFont);
 EpdFont bitter12RegularFont(&bitter_12_regular);
 EpdFont bitter12BoldFont(&bitter_12_bold);
 EpdFont bitter12ItalicFont(&bitter_12_italic);
 EpdFont bitter12BoldItalicFont(&bitter_12_bolditalic);
 EpdFontFamily bitter12FontFamily(&bitter12RegularFont, &bitter12BoldFont, &bitter12ItalicFont, &bitter12BoldItalicFont,
-                                 &devanagari12RegularFont, &devanagari12BoldFont);
+                                 &indic12RegularFont, &indic12BoldFont);
 EpdFont bitter14RegularFont(&bitter_14_regular);
 EpdFont bitter14BoldFont(&bitter_14_bold);
 EpdFont bitter14ItalicFont(&bitter_14_italic);
 EpdFont bitter14BoldItalicFont(&bitter_14_bolditalic);
 EpdFontFamily bitter14FontFamily(&bitter14RegularFont, &bitter14BoldFont, &bitter14ItalicFont, &bitter14BoldItalicFont,
-                                 &devanagari14RegularFont, &devanagari14BoldFont);
+                                 &indic14RegularFont, &indic14BoldFont);
 EpdFont bitter16RegularFont(&bitter_16_regular);
 EpdFont bitter16BoldFont(&bitter_16_bold);
 EpdFont bitter16ItalicFont(&bitter_16_italic);
 EpdFont bitter16BoldItalicFont(&bitter_16_bolditalic);
 EpdFontFamily bitter16FontFamily(&bitter16RegularFont, &bitter16BoldFont, &bitter16ItalicFont, &bitter16BoldItalicFont,
-                                 &devanagari16RegularFont, &devanagari16BoldFont);
+                                 &indic16RegularFont, &indic16BoldFont);
 
 EpdFont smallFont(&inter_8_regular);
-EpdFontFamily smallFontFamily(&smallFont);
+EpdFontFamily smallFontFamily(&smallFont, nullptr, nullptr, nullptr, nullptr, nullptr, &indicUi8Font);
 
 const EpdFont uiSymbols10Font(&ui_symbols_10);
 
 EpdFont ui10RegularFont(&inter_10_regular);
 EpdFont ui10BoldFont(&inter_10_bold);
-EpdFontFamily ui10FontFamily(&ui10RegularFont, &ui10BoldFont, nullptr, nullptr, &uiSymbols10Font);
+EpdFontFamily ui10FontFamily(&ui10RegularFont, &ui10BoldFont, nullptr, nullptr, &uiSymbols10Font, nullptr,
+                             &indicUi10Font);
 
 EpdFont ui12RegularFont(&inter_12_regular);
 EpdFont ui12BoldFont(&inter_12_bold);
-EpdFontFamily ui12FontFamily(&ui12RegularFont, &ui12BoldFont, nullptr, nullptr, &uiSymbols10Font);
+EpdFontFamily ui12FontFamily(&ui12RegularFont, &ui12BoldFont, nullptr, nullptr, &uiSymbols10Font, nullptr,
+                             &indicUi12Font);
 
-void refreshUiScriptFonts(const GfxRenderer& r) {
-  constexpr uint32_t kDevanagariKa = 0x0915;
-  I18N.setScriptFontAvailable(r.uiFontCanDraw(SMALL_FONT_ID, kDevanagariKa) &&
-                              r.uiFontCanDraw(UI_10_FONT_ID, kDevanagariKa) &&
-                              r.uiFontCanDraw(UI_12_FONT_ID, kDevanagariKa));
+// Whether every UI font size can draw `codepoint` (I18n's script check).
+bool uiFontsCanDraw(const uint32_t codepoint) {
+  return renderer.uiFontCanDraw(SMALL_FONT_ID, codepoint) && renderer.uiFontCanDraw(UI_10_FONT_ID, codepoint) &&
+         renderer.uiFontCanDraw(UI_12_FONT_ID, codepoint);
 }
+
+void refreshUiScriptFonts(const GfxRenderer&) { I18N.refreshScriptFont(); }
 
 const char* resetReasonName(const esp_reset_reason_t reason) {
   switch (reason) {
@@ -1150,8 +1157,10 @@ void setupDisplayAndFonts(const bool seamless, const bool loadReaderResources, c
   display.begin(seamless);
 #endif
   renderer.begin();
-  // Hindi menus need Devanagari in every UI size: the built-in UI fonts carry
-  // it here, an SD font's UI fallback elsewhere. Without it tr() serves English.
+  // Indic menus need their script in every UI size: built in here (the UI
+  // families' script fallback), or an SD font's UI fallback. Otherwise tr()
+  // serves English.
+  I18N.setScriptFontCheck(uiFontsCanDraw);
   renderer.setFallbacksChangedHook(refreshUiScriptFonts);
   display.setInverted(SETTINGS.screenInverted != 0);
   // FreeInkUI headers need more than 4 KB once the render loop and nested

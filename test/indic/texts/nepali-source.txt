@@ -1,0 +1,10 @@
+Source URL: https://wikisource.org/wiki/भानुभक्तीय_रामायण/बाल_काण्ड
+Fetched via: MediaWiki API action=parse&prop=text (rendered HTML, so transcluded scan pages are included), converted to plain text
+Work: भानुभक्तीय रामायण (Bhanubhakta's Ramayana), बाल काण्ड, opening stanzas 1–27
+Author: Bhanubhakta Acharya (भानुभक्त आचार्य)
+Author's death year: 1868
+First publication: Written c. 1841–1853. Bal Kanda first printed in 1887 by Motiram Bhatta (Varanasi)
+Extent / edits: Excerpt: the opening stanzas, about 980 words. Each 4-line stanza (ending ॥n॥) is joined into one paragraph. The verse numbers are ASCII digits, as in the source.
+Story word count (whitespace tokens, excl. title): 979
+Public-domain status: VERSE, NOT PROSE. Nepali has no ne.wikisource subdomain; its small collection lives on multilingual wikisource.org, and searches there found no pre-1929 prose by a public-domain author. The other Nepali works found are poetry, mostly by Lekhnath Paudyal and Devkota, who died in 1965 and 1959 and whose works were published after 1929. Bhanubhakta died in 1868 and the text was printed in 1887, so it is public domain everywhere, including India, Nepal and the US. It is the nearest safe option. It is still a good shaping test, with many visible word-final halants (एक् दिन्, लोक्को).
+Normalisation: Unicode NFC; wiki markup, headers, page numbers and footnote markers stripped; paragraphs separated by one blank line; first line = title — author.

@@ -16,6 +16,7 @@ class EpdFontFamily {
       : styleData{regular, bold, italic, boldItalic} {}
 
   const EpdFontData* getFallbackData(Style) const { return nullptr; }
+  const EpdFontData* getShapingFallbackData(Style) const { return nullptr; }
   const EpdFontData* getData(Style style) const {
     const uint8_t requested = static_cast<uint8_t>(style) & 0x03;
     if (styleData[requested]) return styleData[requested];

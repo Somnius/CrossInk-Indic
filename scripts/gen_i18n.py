@@ -1091,7 +1091,10 @@ else:
         Import("env")
         main(
             strip_unused=True,
-            builtin_langs=env.GetProjectOption("custom_i18n_builtin_langs", "all"),
+            # CROSSINK_I18N_LANGS overrides the project option, so one tree
+            # can build per-language variants (CrossInk-Indic: en + one).
+            builtin_langs=os.environ.get("CROSSINK_I18N_LANGS")
+            or env.GetProjectOption("custom_i18n_builtin_langs", "all"),
         )
         keys_path = Path("lib/I18n/I18nKeys.h")
         layout_hash = hashlib.sha256(keys_path.read_bytes()).hexdigest()[:16]

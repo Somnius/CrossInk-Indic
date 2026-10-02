@@ -195,7 +195,7 @@ void RoundedRaffTheme::drawRecentBookCover(GfxRenderer& renderer, Rect rect, con
   } else {
     renderer.fillRoundedRect(tileX, tileY, tileWidth, tileHeight, kRowRadius, Color::LightGray);
     renderer.drawCenteredText(kTitleFontId, rect.y + rect.height / 2 - renderer.getLineHeight(kTitleFontId) / 2,
-                              tr(STR_NO_OPEN_BOOK));
+                              renderer.truncatedText(kTitleFontId, tr(STR_NO_OPEN_BOOK), tileWidth - 32).c_str());
   }
 }
 

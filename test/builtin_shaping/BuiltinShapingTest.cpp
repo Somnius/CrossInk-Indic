@@ -1,5 +1,5 @@
 // Built-in fonts shape Devanagari from a layout font compiled into flash
-// (BuiltinShaping). These run the real generated font data: the regular UI
+// (BuiltinShaping). These run the real generated font data: the UI script
 // font and the shared reading fallbacks.
 #include <gtest/gtest.h>
 
@@ -14,8 +14,8 @@
 #include "Utf8.h"
 #include "builtinFonts/devanagari_14_bold.h"
 #include "builtinFonts/devanagari_14_regular.h"
+#include "builtinFonts/devanagari_ui_12.h"
 #include "builtinFonts/inter_12_bold.h"
-#include "builtinFonts/inter_12_regular.h"
 
 namespace {
 
@@ -57,7 +57,7 @@ void expectHarfBuzzGlyphs(const EpdFontData& font) {
 
 }  // namespace
 
-TEST(BuiltinShaping, UiFontMatchesHarfBuzzGlyphs) { expectHarfBuzzGlyphs(inter_12_regular); }
+TEST(BuiltinShaping, UiFontMatchesHarfBuzzGlyphs) { expectHarfBuzzGlyphs(devanagari_ui_12); }
 
 TEST(BuiltinShaping, ReadingFallbacksMatchHarfBuzzGlyphs) {
   expectHarfBuzzGlyphs(devanagari_14_regular);

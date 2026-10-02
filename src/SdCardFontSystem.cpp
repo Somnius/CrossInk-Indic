@@ -289,7 +289,7 @@ void SdCardFontSystem::setupUiFallbacks(GfxRenderer& renderer) {
     int sdFontId = manager_.loadFamilyExtraSize(*family, renderer, ui.pointSize);
     if (sdFontId == 0) {
       // Downloads in the default size range lack 8 pt: a size within
-      // kUiFallbackSizeSlack still beats boxes (or English menus for Hindi).
+      // kUiFallbackSizeSlack still beats boxes (or English menus for an Indic language).
       const auto* nearest = family->findClosestFile(ui.pointSize);
       if (nearest && std::abs(static_cast<int>(nearest->pointSize) - ui.pointSize) <= kUiFallbackSizeSlack) {
         sdFontId = manager_.loadFamilyExtraSize(*family, renderer, nearest->pointSize);

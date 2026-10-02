@@ -35,13 +35,10 @@ constexpr char latestReleaseUrl[] = CROSSINK_OTA_RELEASE_URL;
 
 #ifdef CROSSINK_FIRMWARE_DEVICE_TYPE
 constexpr char firmwareAssetStem[] = "firmware-" CROSSINK_FIRMWARE_DEVICE_TYPE;
-constexpr char firmwareAssetName[] = "firmware-" CROSSINK_FIRMWARE_DEVICE_TYPE ".bin";
 #else
 constexpr char firmwareAssetStem[] = "firmware";
-constexpr char firmwareAssetName[] = "firmware.bin";
 #endif
 
-constexpr char binSuffix[] = ".bin";
 constexpr size_t VERSION_SEGMENT_COUNT = 4;
 constexpr size_t OTA_PROGRESS_UPDATE_BYTES = 64 * 1024;
 constexpr size_t OTA_HASH_CHUNK = 4096;
@@ -93,6 +90,19 @@ ParsedVersion parseVersion(const char* version) {
 
     if (*p != '.') break;
     ++p;
+  }
+  // CrossInk-Indic releases: "1.6.0-indic.2[-variant]" -> 1.6.0.2, so a new
+  // -indic.N of the same CrossInk version is newer.
+  constexpr char indicMarker[] = "-indic.";
+  if (segmentIndex < VERSION_SEGMENT_COUNT && strncmp(p, indicMarker, sizeof(indicMarker) - 1) == 0 &&
+      isDigit(p[sizeof(indicMarker) - 1])) {
+    p += sizeof(indicMarker) - 1;
+    int value = 0;
+    while (isDigit(*p)) {
+      value = value * 10 + (*p - '0');
+      ++p;
+    }
+    parsed.segments[segmentIndex] = value;
   }
 
   parsed.valid = true;
@@ -158,12 +168,19 @@ bool endsWith(const char* value, const char* suffix) {
   return strcmp(value + valueLength - suffixLength, suffix) == 0;
 }
 
+// A plain `pio run` builds Devanagari with English + Hindi menus: the "hi" variant.
+#ifndef CROSSINK_FIRMWARE_VARIANT
+#define CROSSINK_FIRMWARE_VARIANT "hi"
+#endif
+
 bool isMatchingFirmwareAssetName(const char* assetName) {
   if (assetName == nullptr) return false;
-  if (strcmp(assetName, firmwareAssetName) == 0) return true;
-  if (!startsWith(assetName, firmwareAssetStem)) return false;
-  if (assetName[strlen(firmwareAssetStem)] != '-') return false;
-  return endsWith(assetName, binSuffix);
+  // CrossInk-Indic publishes one bin per language/script and device in a
+  // release (firmware-<device>-v<version>-<variant>.bin): take only this
+  // build's variant, never another language's.
+  constexpr char variantSuffix[] = "-" CROSSINK_FIRMWARE_VARIANT ".bin";
+  return startsWith(assetName, firmwareAssetStem) && assetName[strlen(firmwareAssetStem)] == '-' &&
+         endsWith(assetName, variantSuffix);
 }
 
 /*

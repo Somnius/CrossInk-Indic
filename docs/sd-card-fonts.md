@@ -101,13 +101,18 @@ This build shapes them with the OpenType shaper from CrossPoint Reader
 ([#3787](https://github.com/crosspoint-reader/crosspoint-reader/pull/3787) by
 @ssafayet, `lib/OtShaper`). It follows HarfBuzz's Indic and Universal Shaping
 Engine rules, using the font's own OpenType tables. The engine handles all ten
-Indic presets in the [preset table](#available-unicode-interval-presets) below; this build ships and has tested fonts for
-**Devanagari** only.
+Indic presets in the [preset table](#available-unicode-interval-presets) below.
 
-- **Built in.** CrossInk-Indic compiles Noto Sans Devanagari into the firmware
-  as the reading fonts' and UI fonts' Devanagari, so Hindi needs no SD-card
-  font at all. The families below are an alternative with a serif Devanagari
-  (Bitter Hindi) or a different Latin face.
+- **Built in.** Each CrossInk-Indic build compiles one script's Noto Sans
+  (Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada,
+  Malayalam or Sinhala; regular and bold at every reading size, regular in the
+  UI fonts) into the firmware, so books and menus in that script need no
+  SD-card font at all. The fonts come from
+  `lib/EpdFont/scripts/convert-indic-fonts.sh`; their shaping matches HarfBuzz
+  glyph for glyph in the host tests and on an emulated ESP32-C3. The families
+  below are an alternative for Devanagari with a serif face (Bitter Hindi) or
+  a different Latin face; other scripts can use any `.cpfont` built with
+  shaping data (see below).
 - **Fonts.** Two ready families come with the release, as zips to copy into
   `/.fonts/` on the SD card. Then select one under
   **Settings > Reader > Font Family**:

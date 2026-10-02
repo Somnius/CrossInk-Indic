@@ -682,9 +682,11 @@ void MinimalTheme::drawButtonHints(GfxRenderer& renderer, const char* btn1, cons
   for (int i = 0; i < 4; i++) {
     if (labels[i] != nullptr && labels[i][0] != '\0') {
       const int x = buttonPositions[invertText ? 3 - i : i];
-      const int textWidth = renderer.getTextWidth(SMALL_FONT_ID, labels[i]);
+      // Long translations would run into the next button: cut them to fit.
+      const std::string label = renderer.truncatedText(SMALL_FONT_ID, labels[i], buttonWidth - 4);
+      const int textWidth = renderer.getTextWidth(SMALL_FONT_ID, label.c_str());
       const int textX = x + (buttonWidth - 1 - textWidth) / 2;
-      renderer.drawText(SMALL_FONT_ID, textX, textY, labels[i]);
+      renderer.drawText(SMALL_FONT_ID, textX, textY, label.c_str());
     }
   }
 

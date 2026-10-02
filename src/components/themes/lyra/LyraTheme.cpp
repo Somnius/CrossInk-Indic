@@ -406,9 +406,11 @@ void LyraTheme::drawButtonHints(GfxRenderer& renderer, const char* btn1, const c
   for (int i = 0; i < 4; i++) {
     if (labels[i] != nullptr && labels[i][0] != '\0') {
       const int x = buttonPositions[invertText ? 3 - i : i];
-      const int textWidth = renderer.getTextWidth(SMALL_FONT_ID, labels[i]);
+      // Long translations would run into the next button: cut them to fit.
+      const std::string label = renderer.truncatedText(SMALL_FONT_ID, labels[i], buttonWidth - 4);
+      const int textWidth = renderer.getTextWidth(SMALL_FONT_ID, label.c_str());
       const int textX = x + (buttonWidth - 1 - textWidth) / 2;
-      renderer.drawText(SMALL_FONT_ID, textX, textY, labels[i]);
+      renderer.drawText(SMALL_FONT_ID, textX, textY, label.c_str());
     }
   }
 
@@ -608,10 +610,14 @@ void LyraTheme::drawRecentBookCover(GfxRenderer& renderer, Rect rect, const std:
 
 void LyraTheme::drawEmptyRecents(const GfxRenderer& renderer, const Rect rect) const {
   constexpr int padding = 48;
+  // Translations can be wider than the tile: cut them with an ellipsis.
+  const int maxWidth = rect.width - 2 * padding;
+  const std::string title = renderer.truncatedText(UI_12_FONT_ID, tr(STR_NO_OPEN_BOOK), maxWidth, EpdFontFamily::BOLD);
+  const std::string hint = renderer.truncatedText(UI_10_FONT_ID, tr(STR_START_READING), maxWidth);
   renderer.drawText(UI_12_FONT_ID, rect.x + padding,
-                    rect.y + rect.height / 2 - renderer.getLineHeight(UI_12_FONT_ID) - 2, tr(STR_NO_OPEN_BOOK), true,
+                    rect.y + rect.height / 2 - renderer.getLineHeight(UI_12_FONT_ID) - 2, title.c_str(), true,
                     EpdFontFamily::BOLD);
-  renderer.drawText(UI_10_FONT_ID, rect.x + padding, rect.y + rect.height / 2 + 2, tr(STR_START_READING), true);
+  renderer.drawText(UI_10_FONT_ID, rect.x + padding, rect.y + rect.height / 2 + 2, hint.c_str(), true);
 }
 
 void LyraTheme::drawButtonMenu(GfxRenderer& renderer, Rect rect, int buttonCount, int selectedIndex,

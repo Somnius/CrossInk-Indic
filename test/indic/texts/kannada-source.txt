@@ -1,0 +1,10 @@
+Source URL: https://kn.wikisource.org/wiki/ಕೋಟಿ_ಚೆನ್ನಯ
+Fetched via: MediaWiki API action=parse&prop=text (rendered HTML, so transcluded scan pages are included), converted to plain text
+Work: ಕೋಟಿ ಚೆನ್ನಯ (Koti Chennaya), a prose retelling of the Tulu twin-hero legend; part 1, ಪಡುಮಲೆಯಲ್ಲಿ
+Author: Panje Mangesha Rao (ಪಂಜೆ ಮಂಗೇಶರಾಯ)
+Author's death year: 1937
+First publication: 1924 (Balasahitya Mandala, Kodialbail, Mangalore; printed at Sadananda Co-operative Printing Works)
+Extent / edits: Excerpt: the opening of the story after the author's preface, about 1120 words, cut at a paragraph break. A page-number artefact ('1*') was removed and the paragraph it split was rejoined. OCR errors where Kannada digit zero (೦) stood for anusvara (ಂ) inside words were fixed. Other small OCR slips may remain.
+Story word count (whitespace tokens, excl. title): 1122
+Public-domain status: Panje died in 1937, so the term in India ran out at the end of 1997. The book's 'All Rights Reserved by the Publishers' notice ended with that term. Published in 1924, so it entered the US public domain on 1 Jan 2020.
+Normalisation: Unicode NFC; wiki markup, headers, page numbers and footnote markers stripped; paragraphs separated by one blank line; first line = title — author.

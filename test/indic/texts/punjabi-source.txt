@@ -1,0 +1,10 @@
+Source URL: https://pa.wikisource.org/wiki/ਬਿਜੈ_ਸਿੰਘ/੧._ਕਾਂਡ
+Fetched via: MediaWiki API action=parse&prop=text (rendered HTML, so transcluded scan pages are included), converted to plain text
+Work: ਬਿਜੈ ਸਿੰਘ (Bijay Singh), novel; chapter 1
+Author: Bhai Vir Singh (ਭਾਈ ਵੀਰ ਸਿੰਘ)
+Author's death year: 1957
+First publication: 1899
+Extent / edits: Chapter 1, about 1070 words. Two page-footnotes (historical notes with a source citation) were removed, '*' markers stripped, and the paragraph split by the footnote was rejoined. The text stops before chapter 2. The modern 'ਪ੍ਰਵੇਸ਼ਕਾ' introduction in this edition is not used.
+Story word count (whitespace tokens, excl. title): 1069
+Public-domain status: Exception: Bhai Vir Singh died in 1957, after the 1955 cutoff used for the other texts. Under India's life + 60 term his works became public domain on 1 Jan 2018, and the novel was published in 1899, so it is public domain in the US. The scanned edition may have slightly modernised spelling. No clean pre-1929 Punjabi prose by an author who died before 1955 was found on pa.wikisource.
+Normalisation: Unicode NFC; wiki markup, headers, page numbers and footnote markers stripped; paragraphs separated by one blank line; first line = title — author.

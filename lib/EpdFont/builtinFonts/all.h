@@ -37,15 +37,8 @@
 #include <builtinFonts/lexenddeca_16_italic.h>
 #include <builtinFonts/lexenddeca_16_regular.h>
 
-// Shared Devanagari for the reading families (EpdFontFamily fallback).
-#include <builtinFonts/devanagari_10_bold.h>
-#include <builtinFonts/devanagari_10_regular.h>
-#include <builtinFonts/devanagari_12_bold.h>
-#include <builtinFonts/devanagari_12_regular.h>
-#include <builtinFonts/devanagari_14_bold.h>
-#include <builtinFonts/devanagari_14_regular.h>
-#include <builtinFonts/devanagari_16_bold.h>
-#include <builtinFonts/devanagari_16_regular.h>
+// The Indic script compiled into this build (EpdFontFamily fallbacks).
+#include <builtinFonts/indic_script.h>
 
 // UI fonts - no emoji or PHM variants.
 #include <builtinFonts/inter_10_bold.h>

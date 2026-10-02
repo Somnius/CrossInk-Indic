@@ -1,0 +1,10 @@
+Source URL: https://bn.wikisource.org/wiki/গল্পগুচ্ছ_(প্রথম_খণ্ড)/গিন্নি
+Fetched via: MediaWiki API action=parse&prop=text (rendered HTML, so transcluded scan pages are included), converted to plain text
+Work: গিন্নি (Ginni), short story; in গল্পগুচ্ছ (Galpaguchchha) vol. 1
+Author: Rabindranath Tagore (রবীন্দ্রনাথ ঠাকুর)
+Author's death year: 1941
+First publication: 1891 (Bengali year 1298, per the date note at the end of the Wikisource text). The scanned edition is Visva-Bharati's Galpaguchchha, 1926 edition (reprinted 1933)
+Extent / edits: Complete story; only the trailing date note was removed.
+Story word count (whitespace tokens, excl. title): 997
+Public-domain status: Tagore died in 1941, so the term in India (author's life + 60 years) ran out at the end of 2001. The story was first published in 1891, which is before 1929, so it is also public domain in the US.
+Normalisation: Unicode NFC; wiki markup, headers, page numbers and footnote markers stripped; paragraphs separated by one blank line; first line = title — author.

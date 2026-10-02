@@ -24,13 +24,14 @@ class EpdFontFamily {
 
   explicit EpdFontFamily(const EpdFont* regular, const EpdFont* bold = nullptr, const EpdFont* italic = nullptr,
                          const EpdFont* boldItalic = nullptr, const EpdFont* fallback = nullptr,
-                         const EpdFont* boldFallback = nullptr)
+                         const EpdFont* boldFallback = nullptr, const EpdFont* scriptFallback = nullptr)
       : regular(regular),
         bold(bold),
         italic(italic),
         boldItalic(boldItalic),
         fallback(fallback),
-        boldFallback(boldFallback) {}
+        boldFallback(boldFallback),
+        scriptFallback(scriptFallback) {}
   ~EpdFontFamily() = default;
   void getTextDimensions(const char* string, int* w, int* h, Style style = REGULAR) const;
   const EpdFontData* getData(Style style = REGULAR) const;
@@ -44,8 +45,11 @@ class EpdFontFamily {
   int8_t getKerning(uint32_t leftCp, uint32_t rightCp, Style style = REGULAR) const;
   uint32_t applyLigatures(uint32_t cp, const char*& text, Style style = REGULAR) const;
   /// The shared fallback font for `style` (bold styles prefer boldFallback),
-  /// or nullptr. Built-in reading families take Devanagari from these.
+  /// or nullptr. Built-in reading families take Indic scripts from these.
   const EpdFontData* getFallbackData(Style style = REGULAR) const;
+  /// The fallback that shapes a complex script for `style` (has a
+  /// shapeHandler), or nullptr.
+  const EpdFontData* getShapingFallbackData(Style style = REGULAR) const;
 
  private:
   const EpdFont* regular;
@@ -56,6 +60,9 @@ class EpdFontFamily {
   const EpdFont* fallback;
   // Bold counterpart of `fallback`, tried first for bold styles.
   const EpdFont* boldFallback;
+  // A script font tried after the others (the UI families' Indic script,
+  // whose `fallback` already holds the UI symbols).
+  const EpdFont* scriptFallback;
 
   const EpdFont* getFont(Style style) const;
 };

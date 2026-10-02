@@ -1,0 +1,10 @@
+Source URL: https://mr.wikisource.org/wiki/स्फुट_गोष्टी_भाग_४_था/उलटीकडून_सुरुवात
+Fetched via: MediaWiki API action=parse&prop=text (rendered HTML, so transcluded scan pages are included), converted to plain text
+Work: उलटीकडून सुरुवात (Ulatikadun Suruvat, 'Starting from the wrong end'), short moral story; in स्फुट गोष्टी भाग ४ था (Sphut Goshti, part 4)
+Author: Hari Narayan Apte (हरि नारायण आपटे)
+Author's death year: 1919
+First publication: 1915 (Sphut Goshti part 4, published by Apte, Aryabhushan Press, Pune). It probably appeared earlier in his magazine Karmanuk (unverified)
+Extent / edits: Excerpt: about 1180 words (the full piece is about 1520). The Wikisource text runs the body together as one 1150-word paragraph, so it was cut at a sentence boundary.
+Story word count (whitespace tokens, excl. title): 1179
+Public-domain status: Apte died in 1919, so the term in India ran out at the end of 1979. Published in 1915, so it is public domain in the US. The volume's 'rights reserved under Act XXV of 1867' notice has long since expired.
+Normalisation: Unicode NFC; wiki markup, headers, page numbers and footnote markers stripped; paragraphs separated by one blank line; first line = title — author.

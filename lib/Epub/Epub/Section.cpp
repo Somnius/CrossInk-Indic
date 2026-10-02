@@ -36,13 +36,37 @@ constexpr uint32_t SECTION_CACHE_MAGIC = 0x535843FF;  // bytes: 0xFF, "CXS"
 //      reordered vowel signs for fonts without shaping data), and TextBlocks store each
 //      complex-script word's drawn form so page turns never shape (CrossPoint #3787).
 //      v78 is skipped: the Greek builds use it for a different layout.
-//  v80 (CrossInk-Indic): the built-in reading fonts gained Devanagari, so pages
+//  v80 (CrossInk-Indic.1): the built-in reading fonts gained Devanagari, so pages
 //      laid out with replacement glyphs (or another build's glyph tokens) rebuild.
-constexpr uint8_t SECTION_FILE_VERSION = 80;
+//  0xA0 + script (CrossInk-Indic.2): each build compiles one Indic script, and
+//      cached pages hold that script font's glyph tokens, so a build of another
+//      script (same font IDs) must not reuse them.
+#if defined(CROSSINK_SCRIPT_BENGALI)
+constexpr uint8_t SCRIPT_BUILD_INDEX = 1;
+#elif defined(CROSSINK_SCRIPT_GURMUKHI)
+constexpr uint8_t SCRIPT_BUILD_INDEX = 2;
+#elif defined(CROSSINK_SCRIPT_GUJARATI)
+constexpr uint8_t SCRIPT_BUILD_INDEX = 3;
+#elif defined(CROSSINK_SCRIPT_ORIYA)
+constexpr uint8_t SCRIPT_BUILD_INDEX = 4;
+#elif defined(CROSSINK_SCRIPT_TAMIL)
+constexpr uint8_t SCRIPT_BUILD_INDEX = 5;
+#elif defined(CROSSINK_SCRIPT_TELUGU)
+constexpr uint8_t SCRIPT_BUILD_INDEX = 6;
+#elif defined(CROSSINK_SCRIPT_KANNADA)
+constexpr uint8_t SCRIPT_BUILD_INDEX = 7;
+#elif defined(CROSSINK_SCRIPT_MALAYALAM)
+constexpr uint8_t SCRIPT_BUILD_INDEX = 8;
+#elif defined(CROSSINK_SCRIPT_SINHALA)
+constexpr uint8_t SCRIPT_BUILD_INDEX = 9;
+#else
+constexpr uint8_t SCRIPT_BUILD_INDEX = 0;  // Devanagari
+#endif
+constexpr uint8_t SECTION_FILE_VERSION = 0xA0 + SCRIPT_BUILD_INDEX;
 // Suspended incremental build: valid pages plus LUTs and a parse-watermark trailer.
 // Change this with layout or payload changes so stale partial pages cannot resume
-// under a different layout contract.
-constexpr uint8_t SECTION_FILE_PARTIAL_VERSION = 0xF0;  // 0xF1: v79 (Hindi builds), 0xF2: Greek v78
+// under a different layout contract. 0xF0: v80, 0xF1: v79 (Hindi builds), 0xF2: Greek v78.
+constexpr uint8_t SECTION_FILE_PARTIAL_VERSION = 0xD0 + SCRIPT_BUILD_INDEX;
 constexpr uint32_t HEADER_SIZE =
     sizeof(SECTION_CACHE_MAGIC) + sizeof(uint8_t) + sizeof(int) + sizeof(float) + sizeof(bool) + sizeof(bool) +
     sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(bool) + sizeof(bool) + sizeof(uint8_t) +

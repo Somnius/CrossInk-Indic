@@ -860,8 +860,8 @@ void HomeActivity::loadRecentCovers(int coverHeight) {
 
 void HomeActivity::onEnter() {
   Activity::onEnter();
-  // Network screens release the SD fonts, and with them the Devanagari UI
-  // fallback; reload so Hindi menus come back after them.
+  // Network screens release the SD fonts, and with them an SD-card Indic UI
+  // fallback; reload so the language's menus come back after them.
   if (I18N.isShowingFallbackStrings()) sdFontSystem.ensureLoaded(renderer);
 
   hasOpdsServers = OPDS_STORE.hasServers();

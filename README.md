@@ -1,8 +1,11 @@
 # CrossInk-Indic
 
-**CrossInk with Hindi built in.** Hindi books and Hindi menus work on a fresh SD
-card: the Devanagari fonts and the OpenType shaping data are part of the
-firmware, so there is nothing to install besides the firmware itself.
+**CrossInk with Indic scripts built in.** Books and menus in Hindi, Marathi,
+Nepali, Bengali, Assamese, Punjabi, Gujarati, Odia, Tamil, Telugu, Kannada,
+Malayalam or Sinhala work on a fresh SD card: the fonts and the OpenType
+shaping data are part of the firmware, so there is nothing to install besides
+the firmware itself. There is one firmware per language (menus in English and
+that language) and one reading-only firmware per script (English menus).
 
 <p>
 <img src="./docs/images/indic-test-page.png" alt="Devanagari test page: conjuncts, reph, vowel signs, nukta and mixed Hindi/English" width="200"/>
@@ -21,20 +24,23 @@ their work stays as it is; the changes here are about Indic scripts:
   tables, using the shaper by [@ssafayet](https://github.com/ssafayet) from
   CrossPoint Reader [#3787](https://github.com/crosspoint-reader/crosspoint-reader/pull/3787),
   ported to CrossInk.
-- **Built-in Devanagari.** Noto Sans Devanagari is compiled into the firmware:
-  shared by the Bitter and Lexend Deca reading fonts at every size (regular and
-  bold), and in the 8, 10 and 12 pt UI fonts. Its layout tables are read in
-  place from flash, so shaping costs only a few KB of RAM, on the X3/X4 too.
-- **Hindi menus**, all 845 strings, proofread in two blind back-translation
-  rounds plus a grammar and terminology review against Android's and
-  KOReader's Hindi. A native speaker's review is still very welcome.
-- **English and Hindi only** in the language list: the flash the other 27
-  languages took now holds the fonts (each language is one line in
-  `platformio.ini` to add back if you build it yourself). The string tables
-  take 32-bit offsets where a language needs more than 32 KB.
+- **Built-in script fonts.** Each build compiles one script's Noto Sans
+  (Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada,
+  Malayalam or Sinhala) into the firmware: shared by the Bitter and Lexend
+  Deca reading fonts at every size (regular and bold), and in the 8, 10 and
+  12 pt UI fonts. The layout tables are read in place from flash, so shaping
+  costs only a few KB of RAM, on the X3/X4 too.
+- **Menus in 13 languages**, all 845 strings each, machine-assisted and
+  proofread in two blind back-translation rounds plus a review against
+  Android's (and, where it exists, KOReader's) wording. A native speaker's
+  review is very welcome.
+- **English plus one language** per build: the flash the other languages took
+  holds the fonts. `scripts/build-indic.sh` builds any variant. The string
+  tables take 32-bit offsets where a language needs more than 32 KB.
 - **SD-card fonts still work**: "Bitter Hindi" and "Lexend Hindi" (serif and sans
   Devanagari with matching Latin) and any `.cpfont` with shaping data.
-- **Updates** over Wi-Fi come from this repository's releases.
+- **Updates** over Wi-Fi come from this repository's releases, and only ever
+  install the same variant (same language, or same reading-only script).
 
 Tested in the CrossInk simulator for every device profile, with host unit
 tests, and on an emulated ESP32-C3 (Espressif QEMU, [test/qemu/c3_shaping](./test/qemu/c3_shaping))
@@ -150,12 +156,16 @@ CrossInk runs on an ESP32-C3 with limited RAM, so very large folders or complex 
 
 ## Installation
 
-**CrossInk-Indic:** download the `firmware-<device>-*.bin` for your reader from
-[this repository's releases](https://github.com/Somnius/CrossInk-Indic/releases),
-put it on the SD card and pick it in Settings > System > SD Card Firmware Update
-(the updater checks chip, board tag, checksum and SHA-256 before writing it).
-Then Settings > System > Device > Language > हिन्दी (Hindi). A reader still on
-the stock Xteink firmware first needs CrossInk itself, installed with Inky below.
+**CrossInk-Indic:** download the `firmware-<device>-v<version>-<variant>.bin`
+for your reader from
+[this repository's releases](https://github.com/Somnius/CrossInk-Indic/releases):
+`<variant>` is your language's code (`hi`, `mr`, `ne`, `bn`, `as`, `pa`, `gu`,
+`or`, `ta`, `te`, `kn`, `ml`, `si`) for menus in that language, or
+`read-<script>` for English menus with that script for books. Put it on the SD
+card and pick it in Settings > System > SD Card Firmware Update (the updater
+checks chip, board tag, checksum and SHA-256 before writing it). Then choose
+your language in Settings > System > Device > Language. A reader still on the
+stock Xteink firmware first needs CrossInk itself, installed with Inky below.
 
 The fastest way to install Crossink is by using Inky, Crossink's web companion app: https://inky.crossink.dev/#flash-tools
 
