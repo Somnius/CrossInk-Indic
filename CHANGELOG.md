@@ -22,6 +22,7 @@ All 13 major Indic languages: one firmware per language, and one reading-only fi
 
 ### Fixed
 
+- Words in long paragraphs no longer get split in two where the book's text is read in pieces (a vowel sign could end up on its own, drawn on a dotted circle). This was in CrossInk itself, in any language.
 - Flashing a build with a different script rebuilds cached book pages instead of drawing the old script's glyphs (section cache `0xA0` + script).
 - The font preview checks the language's own script instead of a Devanagari letter.
 - Zero-width joiner and non-joiner (used in Sinhala, Telugu, Kannada and Malayalam spelling) are part of the built-in fonts, so they never draw as boxes when text is drawn without shaping.
