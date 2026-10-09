@@ -26,3 +26,7 @@ process uk
 process pl
 process sv
 process pt
+process ta
+process te
+process kn
+process ml
