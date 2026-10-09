@@ -9,10 +9,14 @@
 #include "generated/hyph-es.trie.h"
 #include "generated/hyph-fr.trie.h"
 #include "generated/hyph-it.trie.h"
+#include "generated/hyph-kn.trie.h"
+#include "generated/hyph-ml.trie.h"
 #include "generated/hyph-pl.trie.h"
 #include "generated/hyph-pt.trie.h"
 #include "generated/hyph-ru.trie.h"
 #include "generated/hyph-sv.trie.h"
+#include "generated/hyph-ta.trie.h"
+#include "generated/hyph-te.trie.h"
 #include "generated/hyph-uk.trie.h"
 
 namespace {
@@ -28,8 +32,15 @@ LanguageHyphenator swedishHyphenator(sv_patterns, isLatinLetter, toLowerLatin);
 LanguageHyphenator ukrainianHyphenator(uk_patterns, isCyrillicLetter, toLowerCyrillic);
 LanguageHyphenator polishHyphenator(pl_patterns, isLatinLetter, toLowerLatin);
 LanguageHyphenator portugueseHyphenator(pt_patterns, isLatinLetter, toLowerLatin);
+// Indic patterns (hyph-utf8, Santhosh Thottingal, MIT) break only between
+// syllables; Hyphenator also drops any break inside one. At least 3 codepoints
+// each side, so no piece is a lone syllable such as "తె-".
+LanguageHyphenator tamilHyphenator(ta_patterns, isTamilLetter, toLowerIdentity, 3, 3);
+LanguageHyphenator teluguHyphenator(te_patterns, isTeluguLetter, toLowerIdentity, 3, 3);
+LanguageHyphenator kannadaHyphenator(kn_patterns, isKannadaLetter, toLowerIdentity, 3, 3);
+LanguageHyphenator malayalamHyphenator(ml_patterns, isMalayalamLetter, toLowerIdentity, 3, 3);
 
-using EntryArray = std::array<LanguageEntry, 10>;
+using EntryArray = std::array<LanguageEntry, 14>;
 
 const EntryArray& entries() {
   static const EntryArray kEntries = {{{"english", "en", &englishHyphenator},
@@ -41,7 +52,11 @@ const EntryArray& entries() {
                                        {"polish", "pl", &polishHyphenator},
                                        {"portuguese", "pt", &portugueseHyphenator},
                                        {"swedish", "sv", &swedishHyphenator},
-                                       {"ukrainian", "uk", &ukrainianHyphenator}}};
+                                       {"ukrainian", "uk", &ukrainianHyphenator},
+                                       {"tamil", "ta", &tamilHyphenator},
+                                       {"telugu", "te", &teluguHyphenator},
+                                       {"kannada", "kn", &kannadaHyphenator},
+                                       {"malayalam", "ml", &malayalamHyphenator}}};
   return kEntries;
 }
 

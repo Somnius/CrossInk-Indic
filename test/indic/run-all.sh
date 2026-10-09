@@ -5,7 +5,7 @@
 # others. Reading-only builds: book pages on the X4 Pro and X3 profiles.
 # With STOCK=<stock CrossInk x4-pro-simulator program>, English screens of the
 # reading-only builds (and of the hi/ta builds) are compared with stock pixel
-# by pixel.
+# by pixel. FROM=<code> resumes the full-menu builds at that language.
 set -u
 H=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$H/../.." && pwd)
@@ -17,7 +17,9 @@ build(){
   (cd "$REPO" && OUT=$OUT/bins scripts/build-indic.sh "$@" > "$log" 2>&1) || { echo "BUILD FAILED: $*"; tail -20 "$log"; return 1; }
 }
 if [ "$WHAT" != read ]; then
+  started=${FROM:+no}
   for x in $LANGS; do IFS=: read -r code name ui <<< "$x"
+    [ "${started:-yes}" = no ] && { [ "$code" = "$FROM" ] && started=yes || continue; }
     for env in x4-pro-simulator simulator simulator-X3 sticky-simulator x4-classic-simulator; do
       build lang "$code" "$env" || continue
       q=1; [ "$env" = x4-pro-simulator ] && q=

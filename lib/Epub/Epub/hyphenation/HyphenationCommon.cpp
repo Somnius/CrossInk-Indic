@@ -54,6 +54,19 @@ uint32_t toLowerLatin(const uint32_t cp) { return toLowerLatinImpl(cp); }
 
 uint32_t toLowerCyrillic(const uint32_t cp) { return toLowerCyrillicImpl(cp); }
 
+uint32_t toLowerIdentity(const uint32_t cp) { return cp; }
+
+namespace {
+constexpr bool inIndicBlock(const uint32_t cp, const uint32_t first) {
+  return (cp >= first && cp <= first + 0x7F) || cp == 0x200C || cp == 0x200D;
+}
+}  // namespace
+
+bool isTamilLetter(const uint32_t cp) { return inIndicBlock(cp, 0x0B80); }
+bool isTeluguLetter(const uint32_t cp) { return inIndicBlock(cp, 0x0C00); }
+bool isKannadaLetter(const uint32_t cp) { return inIndicBlock(cp, 0x0C80); }
+bool isMalayalamLetter(const uint32_t cp) { return inIndicBlock(cp, 0x0D00); }
+
 bool isLatinLetter(const uint32_t cp) {
   if ((cp >= 'A' && cp <= 'Z') || (cp >= 'a' && cp <= 'z')) {
     return true;

@@ -25,7 +25,8 @@ struct Iso639Mapping {
 };
 static constexpr Iso639Mapping kIso639Mappings[] = {{"eng", "en"}, {"fra", "fr"}, {"fre", "fr"}, {"deu", "de"},
                                                     {"ger", "de"}, {"rus", "ru"}, {"spa", "es"}, {"ita", "it"},
-                                                    {"ukr", "uk"}, {"swe", "sv"}, {"por", "pt"}};
+                                                    {"ukr", "uk"}, {"swe", "sv"}, {"por", "pt"}, {"tam", "ta"},
+                                                    {"tel", "te"}, {"kan", "kn"}, {"mal", "ml"}};
 
 // Maps a BCP-47 or ISO 639-2 language tag to a language-specific hyphenator.
 const LanguageHyphenator* hyphenatorForLanguage(const std::string& langTag) {
@@ -60,6 +61,30 @@ void appendFallbackIndexes(const std::vector<CodepointInfo>& cps, const size_t m
   for (size_t idx = minPrefix; idx + minSuffix <= cps.size(); ++idx) {
     if (idx == 0 || indic::syllableBreakAllowed(cps[idx - 1].value, cps[idx].value)) out.push_back(idx);
   }
+}
+
+// Tamil, Telugu, Kannada and Malayalam words use their script's patterns
+// whatever the book's language says: a word's letters already tell the script.
+const LanguageHyphenator* hyphenatorForScript(const std::vector<CodepointInfo>& cps) {
+  for (const auto& cp : cps) {
+    const uint32_t c = cp.value;
+    if (c >= 0x0B80 && c <= 0x0BFF) return getLanguageHyphenatorForPrimaryTag("ta");
+    if (c >= 0x0C00 && c <= 0x0C7F) return getLanguageHyphenatorForPrimaryTag("te");
+    if (c >= 0x0C80 && c <= 0x0CFF) return getLanguageHyphenatorForPrimaryTag("kn");
+    if (c >= 0x0D00 && c <= 0x0D7F) return getLanguageHyphenatorForPrimaryTag("ml");
+  }
+  return nullptr;
+}
+
+// Pattern breaks must also fall between Indic syllables: each half of a split
+// word is shaped on its own, so a break inside a syllable would draw it wrong.
+void dropSyllableSplits(const std::vector<CodepointInfo>& cps, std::vector<size_t>& indexes) {
+  indexes.erase(std::remove_if(indexes.begin(), indexes.end(),
+                               [&cps](const size_t idx) {
+                                 return idx == 0 || idx >= cps.size() ||
+                                        !indic::syllableBreakAllowed(cps[idx - 1].value, cps[idx].value);
+                               }),
+                indexes.end());
 }
 
 // Maps a codepoint index back to its byte offset inside the source word.
@@ -109,6 +134,7 @@ void appendSegmentPatternBreaks(const std::vector<CodepointInfo>& cps, const Lan
     if (i > segStart) {
       std::vector<CodepointInfo> segment(cps.begin() + segStart, cps.begin() + i);
       auto segIndexes = hyphenator.breakIndexes(segment);
+      dropSyllableSplits(segment, segIndexes);
 
       if (includeFallback && segIndexes.empty()) {
         appendFallbackIndexes(segment, hyphenator.minPrefix(), hyphenator.minSuffix(), segIndexes);
@@ -187,7 +213,8 @@ std::vector<Hyphenator::BreakInfo> Hyphenator::breakOffsets(const std::string& w
   // Convert to codepoints and normalize word boundaries.
   auto cps = collectCodepoints(word);
   trimSurroundingPunctuationAndFootnote(cps);
-  const auto* hyphenator = cachedHyphenator_;
+  const auto* scriptHyphenator = hyphenatorForScript(cps);
+  const auto* hyphenator = scriptHyphenator ? scriptHyphenator : cachedHyphenator_;
 
   // Detect apostrophe-like separators early; used by both branches below.
   bool hasApostropheLikeSeparator = false;
@@ -246,6 +273,7 @@ std::vector<Hyphenator::BreakInfo> Hyphenator::breakOffsets(const std::string& w
   std::vector<size_t> indexes;
   if (hyphenator) {
     indexes = hyphenator->breakIndexes(cps);
+    dropSyllableSplits(cps, indexes);
   }
 
   // Only add fallback breaks if needed

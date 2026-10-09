@@ -6,6 +6,7 @@ All 13 major Indic languages: one firmware per language, and one reading-only fi
 
 - Built-in fonts for ten scripts: Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam and Sinhala (Noto Sans, regular and bold at every reading size, regular in the UI fonts). Each build carries one script.
 - Menus in Marathi, Nepali, Bengali, Assamese, Punjabi, Gujarati, Odia, Tamil, Telugu, Kannada, Malayalam and Sinhala, all 845 strings each, machine-assisted and proofread like the Hindi ones (two blind back-translations, review against Android's wording).
+- Hyphenation for Tamil, Telugu, Kannada and Malayalam (hyph-utf8 patterns by Santhosh Thottingal), only ever between syllables, so justified lines fill instead of leaving wide gaps. Devanagari, Bengali, Gurmukhi, Gujarati, Oriya and Sinhala stay unhyphenated.
 - `scripts/build-indic.sh` builds any variant: `lang <code>` (English + that language) or `read <script>` (English menus).
 - `convert-indic-fonts.sh` generates every script's built-in fonts and layout data.
 - The ESP32-C3 QEMU test shapes words in all ten built-in scripts against HarfBuzz and loads every glyph bitmap of a paragraph per script.

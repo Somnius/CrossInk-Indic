@@ -131,8 +131,11 @@ Indic presets in the [preset table](#available-unicode-interval-presets) below.
   `dc:language` only picks language-specific forms in fonts that have them
   (Marathi and Nepali letterforms, for example).
 - **Line breaks.** Lines break between words and never inside an akshara
-  (syllable). Hindi is customarily not hyphenated, so no Hindi hyphenation
-  patterns are used.
+  (syllable). Tamil, Telugu, Kannada and Malayalam words, whose long words
+  leave wide gaps in justified text, are hyphenated between syllables with the
+  hyph-utf8 patterns (at least 3 codepoints on each side), whatever the book's
+  language says. Hindi and the other Devanagari, Bengali, Gurmukhi, Gujarati,
+  Oriya and Sinhala text is not hyphenated.
 - **Titles and the interface.** Book titles, file names, the table of contents
   and the status bar use the selected family as a size-matched UI fallback,
   as for CJK, which is why the families include the 8, 10 and 12 pt sizes.

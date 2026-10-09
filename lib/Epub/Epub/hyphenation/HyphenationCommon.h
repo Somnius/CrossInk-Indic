@@ -16,6 +16,15 @@ uint32_t toLowerCyrillic(uint32_t cp);
 bool isLatinLetter(uint32_t cp);
 bool isCyrillicLetter(uint32_t cp);
 
+// Indic scripts with hyphenation patterns: every codepoint of the script's
+// block (letters, vowel signs, virama) plus ZWNJ/ZWJ, which the patterns
+// reference. Indic scripts have no case, so their "lowercase" is the codepoint.
+bool isTamilLetter(uint32_t cp);
+bool isTeluguLetter(uint32_t cp);
+bool isKannadaLetter(uint32_t cp);
+bool isMalayalamLetter(uint32_t cp);
+uint32_t toLowerIdentity(uint32_t cp);
+
 bool isAlphabetic(uint32_t cp);
 bool isPunctuation(uint32_t cp);
 bool isAsciiDigit(uint32_t cp);
