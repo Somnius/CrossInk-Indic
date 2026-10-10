@@ -1,3 +1,15 @@
+## [Unreleased]
+
+### Added
+
+- Burmese (Myanmar script): built-in Noto Sans Myanmar at every reading size and in the UI fonts, and Burmese menus (all 845 strings, machine-assisted, checked by back-translation; a native speaker's review is welcome). Builds `lang my` and `read myanmar`.
+- Myanmar shaping, a port of HarfBuzz's Myanmar shaper: kinzi, medial ra and the e vowel sign reorder, stacked consonants and the variation selectors. Identical to HarfBuzz on 24,320 generated test strings in regular and bold.
+- Burmese line breaks between syllables (Burmese has no spaces between words), never before a consonant asat or the stacker makes a final, nor inside a number. Justified Burmese stretches only the spaces between phrases.
+
+### Fixed
+
+- The font converter only reads pair kerning from a font's `kern` feature (Noto Sans Myanmar also has contextual positioning there, which crashed it).
+
 ## [v1.6.0-indic.2] - 2026-10-10
 
 All 13 major Indic languages: one firmware per language, and one reading-only firmware per script.

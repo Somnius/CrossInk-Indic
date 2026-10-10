@@ -19,7 +19,7 @@ import uharfbuzz as hb
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../lib/EpdFont/scripts"))
 import shaping_blob  # noqa: E402
 
-SCRIPTS = [  # name, font dir, first codepoint of the block, story file
+SCRIPTS = [  # name, font dir, first codepoint of the block, story file[, block size]
     ("devanagari", "NotoSansDevanagari", 0x0900, "hindi"),
     ("bengali", "NotoSansBengali", 0x0980, "bengali"),
     ("gurmukhi", "NotoSansGurmukhi", 0x0A00, "punjabi"),
@@ -30,6 +30,7 @@ SCRIPTS = [  # name, font dir, first codepoint of the block, story file
     ("kannada", "NotoSansKannada", 0x0C80, "kannada"),
     ("malayalam", "NotoSansMalayalam", 0x0D00, "malayalam"),
     ("sinhala", "NotoSansSinhala", 0x0D80, "sinhala"),
+    ("myanmar", "NotoSansMyanmar", 0x1000, "burmese", 0xA0),
 ]
 WORDS = 24
 PARAGRAPH_CHARS = 240
@@ -40,9 +41,9 @@ def c_string(text):
     return '"' + "".join(f"\\x{b:02X}" for b in text.encode("utf-8")) + '"'
 
 
-def script_words(text, first):
+def script_words(text, first, size=0x80):
     joiners = "‌‍"
-    pattern = f"[{chr(first)}-{chr(first + 0x7F)}{joiners}]+"
+    pattern = f"[{chr(first)}-{chr(first + size - 1)}{joiners}]+"
     seen = []
     for word in re.findall(pattern, text):
         word = word.strip(joiners)
@@ -69,12 +70,12 @@ def main():
            "#include <cstddef>", "#include <cstdint>", "",
            "struct ScriptWord {", "  const char* utf8;", "  const uint16_t* gids;", "  uint8_t count;", "};", ""]
     table = []
-    for name, font_dir, first, story_name in SCRIPTS:
+    for name, font_dir, first, story_name, *size in SCRIPTS:
         path = os.path.join(FONTS, font_dir, f"{font_dir}-Regular.ttf")
         render_bytes, _, _ = shaping_blob.build(path, [name])
         font = hb.Font(hb.Face(hb.Blob(render_bytes)))
         story = open(os.path.join(texts, f"{story_name}-story.txt"), encoding="utf-8").read()
-        words = script_words(story, first)
+        words = script_words(story, first, *size)
         entries = []
         for i, word in enumerate(words):
             gids = shape(font, word)

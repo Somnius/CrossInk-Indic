@@ -10,8 +10,8 @@ set -u
 H=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$H/../.." && pwd)
 OUT=$(mkdir -p "${1:?out dir}" && cd "$1" && pwd); WHAT=${2:-all}
-LANGS="hi:hindi:HI mr:marathi:MAR ne:nepali:NE bn:bengali:BN as:assamese:AS pa:punjabi:PA gu:gujarati:GU or:odia:OR ta:tamil:TA te:telugu:TE kn:kannada:KN ml:malayalam:ML si:sinhala:SIN"
-READS="devanagari:hindi bengali:bengali gurmukhi:punjabi gujarati:gujarati oriya:odia tamil:tamil telugu:telugu kannada:kannada malayalam:malayalam sinhala:sinhala"
+LANGS="hi:hindi:HI mr:marathi:MAR ne:nepali:NE bn:bengali:BN as:assamese:AS pa:punjabi:PA gu:gujarati:GU or:odia:OR ta:tamil:TA te:telugu:TE kn:kannada:KN ml:malayalam:ML si:sinhala:SIN my:burmese:MY"
+READS="devanagari:hindi bengali:bengali gurmukhi:punjabi gujarati:gujarati oriya:odia tamil:tamil telugu:telugu kannada:kannada malayalam:malayalam sinhala:sinhala myanmar:burmese"
 build(){
   local log="$OUT/build-${2}-${3}.log"
   (cd "$REPO" && OUT=$OUT/bins scripts/build-indic.sh "$@" > "$log" 2>&1) || { echo "BUILD FAILED: $*"; tail -20 "$log"; return 1; }
@@ -24,7 +24,7 @@ if [ "$WHAT" != read ]; then
       build lang "$code" "$env" || continue
       q=1; [ "$env" = x4-pro-simulator ] && q=
       echo "== $code $env: $(QUICK=$q "$H/run-lang.sh" "$REPO/.pio/build/$env/program" "$name" "$ui" "$OUT/$code/$env" | tr '\n' ' ')"
-      if [ -n "${STOCK:-}" ] && [ "$env" = x4-pro-simulator ] && [[ " hi ta " == *" $code "* ]]; then
+      if [ -n "${STOCK:-}" ] && [ "$env" = x4-pro-simulator ] && [[ " hi ta my " == *" $code "* ]]; then
         echo "== $code english $("$H/run-regression.sh" "$STOCK" "$REPO/.pio/build/$env/program" "$OUT/$code/regression" | tail -1)"
       fi
     done

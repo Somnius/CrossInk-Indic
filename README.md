@@ -2,7 +2,7 @@
 
 **CrossInk with Indic scripts built in.** Books and menus in Hindi, Marathi,
 Nepali, Bengali, Assamese, Punjabi, Gujarati, Odia, Tamil, Telugu, Kannada,
-Malayalam or Sinhala work on a fresh SD card: the fonts and the OpenType
+Malayalam, Sinhala or Burmese work on a fresh SD card: the fonts and the OpenType
 shaping data are part of the firmware, so there is nothing to install besides
 the firmware itself. There is one firmware per language (menus in English and
 that language) and one reading-only firmware per script (English menus).
@@ -26,11 +26,11 @@ their work stays as it is; the changes here are about Indic scripts:
   ported to CrossInk.
 - **Built-in script fonts.** Each build compiles one script's Noto Sans
   (Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada,
-  Malayalam or Sinhala) into the firmware: shared by the Bitter and Lexend
+  Malayalam, Sinhala or Myanmar) into the firmware: shared by the Bitter and Lexend
   Deca reading fonts at every size (regular and bold), and in the 8, 10 and
   12 pt UI fonts. The layout tables are read in place from flash, so shaping
   costs only a few KB of RAM, on the X3/X4 too.
-- **Menus in 13 languages**, all 845 strings each, machine-assisted and
+- **Menus in 14 languages**, all 845 strings each, machine-assisted and
   proofread in two blind back-translation rounds plus a review against
   Android's (and, where it exists, KOReader's) wording. A native speaker's
   review is very welcome.
@@ -160,7 +160,7 @@ CrossInk runs on an ESP32-C3 with limited RAM, so very large folders or complex 
 for your reader from
 [this repository's releases](https://github.com/Somnius/CrossInk-Indic/releases):
 `<variant>` is your language's code (`hi`, `mr`, `ne`, `bn`, `as`, `pa`, `gu`,
-`or`, `ta`, `te`, `kn`, `ml`, `si`) for menus in that language, or
+`or`, `ta`, `te`, `kn`, `ml`, `si`, `my`) for menus in that language, or
 `read-<script>` for English menus with that script for books. Put it on the SD
 card and pick it in Settings > System > SD Card Firmware Update (the updater
 checks chip, board tag, checksum and SHA-256 before writing it). Then choose

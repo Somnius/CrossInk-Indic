@@ -32,6 +32,7 @@
 #include "builtinFonts/gurmukhi_14_regular.h"
 #include "builtinFonts/kannada_14_regular.h"
 #include "builtinFonts/malayalam_14_regular.h"
+#include "builtinFonts/myanmar_14_regular.h"
 #include "builtinFonts/oriya_14_regular.h"
 #include "builtinFonts/sinhala_14_regular.h"
 #include "builtinFonts/tamil_14_regular.h"

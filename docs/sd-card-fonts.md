@@ -100,12 +100,12 @@ enough; without shaping, conjuncts fall apart with a visible virama (क्‌�
 This build shapes them with the OpenType shaper from CrossPoint Reader
 ([#3787](https://github.com/crosspoint-reader/crosspoint-reader/pull/3787) by
 @ssafayet, `lib/OtShaper`). It follows HarfBuzz's Indic and Universal Shaping
-Engine rules, using the font's own OpenType tables. The engine handles all ten
-Indic presets in the [preset table](#available-unicode-interval-presets) below.
+Engine rules, and its Myanmar shaper for Burmese, using the font's own OpenType
+tables. The engine handles all eleven presets in the [preset table](#available-unicode-interval-presets) below.
 
 - **Built in.** Each CrossInk-Indic build compiles one script's Noto Sans
   (Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada,
-  Malayalam or Sinhala; regular and bold at every reading size, regular in the
+  Malayalam, Sinhala or Myanmar; regular and bold at every reading size, regular in the
   UI fonts) into the firmware, so books and menus in that script need no
   SD-card font at all. The fonts come from
   `lib/EpdFont/scripts/convert-indic-fonts.sh`; their shaping matches HarfBuzz
@@ -135,7 +135,10 @@ Indic presets in the [preset table](#available-unicode-interval-presets) below.
   leave wide gaps in justified text, are hyphenated between syllables with the
   hyph-utf8 patterns (at least 3 codepoints on each side), whatever the book's
   language says. Hindi and the other Devanagari, Bengali, Gurmukhi, Gujarati,
-  Oriya and Sinhala text is not hyphenated.
+  Oriya and Sinhala text is not hyphenated. Burmese, written without spaces
+  between words, breaks between syllables (never before a consonant asat or
+  the stacker makes a syllable's final, nor inside a number); justified
+  Burmese lines stretch only the spaces between phrases.
 - **Titles and the interface.** Book titles, file names, the table of contents
   and the status bar use the selected family as a size-matched UI fallback,
   as for CJK, which is why the families include the 8, 10 and 12 pt sizes.
