@@ -220,6 +220,14 @@ int computeJustifyExtra(const int spareSpace, const size_t gapCount) {
   return -((-spareSpace + gaps - 1) / gaps);
 }
 
+// A Burmese line only has spaces between phrases, often two or three, so
+// spreading its spare space over them opens gaps several spaces wide. Let each
+// gap grow by at most one natural space; the rest stays at the line end.
+int capMyanmarJustifyExtra(const int extra, const int naturalGaps, const size_t gapCount) {
+  if (extra <= 0 || gapCount == 0) return extra;
+  return std::min(extra, naturalGaps / static_cast<int>(gapCount));
+}
+
 bool isBase64LikeChar(const char c) {
   return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == '/' || c == '=';
 }
@@ -1674,8 +1682,11 @@ bool ParsedText::extractLine(Arena& scratchArena, const size_t breakIndex, const
   // filled past its natural width (shrinkable spaces) shrinks them, in any
   // alignment and even when it is the last line.
   const bool justified = effectiveAlignment == CssTextAlign::Justify;
-  const int justifyExtra =
-      (justified && !isLastLine) || spareSpace < 0 ? computeJustifyExtra(spareSpace, actualGapCount) : 0;
+  const bool lineHasMyanmar = std::any_of(lineWords.begin(), lineWords.end(), [](const std::string& word) {
+    return indic::isMyanmar(firstCodepoint(word)) || indic::isMyanmar(lastCodepoint(word));
+  });
+  int justifyExtra = (justified && !isLastLine) || spareSpace < 0 ? computeJustifyExtra(spareSpace, actualGapCount) : 0;
+  if (lineHasMyanmar) justifyExtra = capMyanmarJustifyExtra(justifyExtra, totalNaturalGaps, actualGapCount);
   // Width the line's words and gaps take as drawn (natural, or shrunk to fit).
   const int drawnLineWidth =
       lineWordWidthSum + totalNaturalGaps + (justifyExtra < 0 ? justifyExtra * static_cast<int>(actualGapCount) : 0);
@@ -1768,9 +1779,12 @@ bool ParsedText::extractLine(Arena& scratchArena, const size_t breakIndex, const
 
     const int reorderedSpare =
         effectivePageWidth - extraStartOffset - extraEndOffset - reorderedWordWidthSum - reorderedNaturalGaps;
-    const int reorderedJustifyExtra = (effectiveAlignment == CssTextAlign::Justify && !isLastLine)
-                                          ? computeJustifyExtra(reorderedSpare, reorderedGapCount)
-                                          : 0;
+    int reorderedJustifyExtra = (effectiveAlignment == CssTextAlign::Justify && !isLastLine)
+                                    ? computeJustifyExtra(reorderedSpare, reorderedGapCount)
+                                    : 0;
+    if (lineHasMyanmar) {
+      reorderedJustifyExtra = capMyanmarJustifyExtra(reorderedJustifyExtra, reorderedNaturalGaps, reorderedGapCount);
+    }
     activeJustifyExtra = reorderedJustifyExtra;
     const int justifyContribution = (effectiveAlignment == CssTextAlign::Justify && !isLastLine)
                                         ? reorderedJustifyExtra * static_cast<int>(reorderedGapCount)

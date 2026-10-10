@@ -1,3 +1,11 @@
+## [v1.6.0-indic.4] - 2026-10-10
+
+Burmese spacing.
+
+### Fixed
+
+- Justified Burmese no longer opens huge gaps. A Burmese line only has spaces between phrases, often two or three, so stretching them to fill the line made each one several spaces wide. Each space now grows by at most one extra space and the rest stays at the end of the line. Measured on the first chapters of three Burmese novels with Hyphenation off (the default), lines whose spaces grew by more than two extra spaces went from 33% to none. Books laid out by indic.3 are laid out again once.
+
 ## [v1.6.0-indic.3] - 2026-10-10
 
 Burmese.

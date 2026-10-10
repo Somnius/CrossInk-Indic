@@ -303,13 +303,14 @@ Binary layout:
 
 ## `section.bin`
 
-### Versions `0xA0`–`0xAA` (CrossInk-Indic.2)
+### Versions `0xA0`–`0xA9`, `0xAB` (CrossInk-Indic.2, Myanmar since Indic.4)
 
 Same layout as version 79. Each CrossInk-Indic build compiles one Indic script
 into the reading fonts, and pages store that font's glyph tokens, so the
 version byte carries the script: `0xA0` + 0 Devanagari, 1 Bengali, 2 Gurmukhi,
 3 Gujarati, 4 Oriya, 5 Tamil, 6 Telugu, 7 Kannada, 8 Malayalam, 9 Sinhala,
-10 Myanmar.
+11 Myanmar (10 in Indic.3; bumped when justified Burmese lines began capping
+each space's stretch at one extra space).
 Flashing a build of another script rebuilds the cache. Suspended partials use
 `0xD0` + the same index. These versions also cover the line breaker letting word
 spaces shrink by up to a third to fill a line before hyphenating.
