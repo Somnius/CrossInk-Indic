@@ -629,9 +629,9 @@ void ParsedText::addWord(std::string word, const EpdFontFamily::Style fontStyle,
   // previous one in the source) may be turned into a gap-less break opportunity. When real
   // whitespace separated the two words, that space is content and must be rendered: Korean
   // is a space-delimited script written in Hangul, which utf8IsCjkBreakable() covers.
-  const auto secondCodepoint = [&word]() {  // skipping the dot below, as myanmarBreakBefore() wants
+  const auto secondCodepoint = [&word]() -> uint32_t {  // skipping the dot below, as myanmarBreakBefore() wants
     const auto* ptr = reinterpret_cast<const unsigned char*>(word.c_str());
-    if (!utf8NextCodepoint(&ptr)) return 0u;
+    if (!utf8NextCodepoint(&ptr)) return 0;
     uint32_t cp;
     while ((cp = utf8NextCodepoint(&ptr)) == indic::MYANMAR_DOT_BELOW) {
     }

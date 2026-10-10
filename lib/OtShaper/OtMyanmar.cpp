@@ -51,7 +51,7 @@ void reorderConsonantSyllable(Buffer& buffer, const unsigned start, const unsign
   uint8_t pos = ipos::AFTER_MAIN;
   for (; i < end; i++) {
     const uint8_t cat = info[i].category;
-    if (cat == mcat::MR) {  // medial ra: pre-base
+    if (cat == mcat::MedialRa) {  // medial ra: pre-base
       info[i].position = ipos::PRE_C;
     } else if (cat == mcat::VPre) {  // left matra
       info[i].position = ipos::PRE_M;

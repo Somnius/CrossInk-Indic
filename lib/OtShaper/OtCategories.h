@@ -27,9 +27,10 @@ constexpr uint8_t START = 0, RA_TO_BECOME_REPH = 1, PRE_M = 2, PRE_C = 3, BASE_C
 
 // Myanmar character categories beyond the Indic ones they share
 // (myanmar_syllable_machine_ex_*): consonants are icat::C, Ra and CS,
-// H is the virama, and so on.
+// H is the virama, and so on. HarfBuzz's MR is MedialRa here (MR is an
+// Xtensa register macro).
 namespace mcat {
-constexpr uint8_t IV = 2, DB = 3, GB = 10, VAbv = 20, VBlw = 21, VPre = 22, VPst = 23, As = 32, MH = 35, MR = 36,
+constexpr uint8_t IV = 2, DB = 3, GB = 10, VAbv = 20, VBlw = 21, VPre = 22, VPst = 23, As = 32, MH = 35, MedialRa = 36,
                   MW = 37, MY = 38, PT = 39, VS = 40, ML = 41;
 }
 
