@@ -1,4 +1,4 @@
-## [v1.6.0-indic.2] - 2026-10-02
+## [v1.6.0-indic.2] - 2026-10-10
 
 All 13 major Indic languages: one firmware per language, and one reading-only firmware per script.
 
