@@ -11,7 +11,7 @@ exactly.
     pip install fonttools uharfbuzz
     python3 test/complex_shaper/generate_fixtures.py <dir with NotoSans<Script>-Regular.ttf>
 
-Noto Sans Bengali, Devanagari, Tamil and Sinhala:
+Noto Sans Bengali, Devanagari, Tamil, Sinhala and Myanmar:
 https://github.com/notofonts (SIL OFL 1.1, see data/OFL.txt).
 """
 
@@ -82,6 +82,17 @@ FIXTURES = [
         "ක්‍ෂ",            # ZWJ conjunct
         "කෝ", "කෞ",        # multi-part vowels
         "ලංකාව",           # aa-sign after anusvara
+    ]),
+    ("myanmar", "Mymr", [
+        "မြန်မာ",          # medial ra before its consonant, asat
+        "ကျေးဇူး",          # e-sign before ka + medial ya, visarga
+        "မင်္ဂလာပါ",        # kinzi moved after its base, tall aa
+        "သင်္ဘော",          # kinzi with a two-part vowel
+        "ကမ္ဘာ",           # stacked bha under ma
+        "ကျွန်တော်",        # medial ya + wa ligature
+        "ကြောင့်",          # medial ra, two-part vowel, dot below + asat
+        ("မြန်မာ", "my"),   # Burmese language system
+        "၂၀၂၆",           # Myanmar digits
     ]),
 ]
 

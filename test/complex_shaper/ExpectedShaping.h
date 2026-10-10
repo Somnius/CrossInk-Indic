@@ -206,6 +206,41 @@ constexpr ExpectedShaping kSinhalaShaping[] = {
     {"\xE0\xB6\xBD\xE0\xB6\x82\xE0\xB6\x9A\xE0\xB7\x8F\xE0\xB7\x80", "", kSinhalaGlyphs5, 5},  // ලංකාව
 };
 
+constexpr ExpectedGlyph kMyanmarGlyphs0[] = {{45, 122, 0, 0}, {27, 361, 0, 0}, {22, 304, 0, 0},
+                                             {347, 0, 1, 0},  {27, 361, 0, 0}, {334, 243, 0, 0}};
+constexpr ExpectedGlyph kMyanmarGlyphs1[] = {{338, 330, 0, 0}, {2, 599, 0, 0},  {348, 137, 0, 0}, {345, 185, 0, 0},
+                                             {9, 365, 0, 0},   {326, 0, -1, 0}, {345, 185, 0, 0}};
+constexpr ExpectedGlyph kMyanmarGlyphs2[] = {{27, 361, 0, 0},  {4, 356, 0, 0},  {157, 0, 0, 0},  {30, 601, 0, 0},
+                                             {334, 243, 0, 0}, {23, 361, 0, 0}, {333, 143, 0, 0}};
+constexpr ExpectedGlyph kMyanmarGlyphs3[] = {
+    {32, 601, 0, 0}, {338, 330, 0, 0}, {26, 599, 0, 0}, {157, 0, 0, 0}, {334, 243, 0, 0}};
+constexpr ExpectedGlyph kMyanmarGlyphs4[] = {{2, 599, 0, 0}, {27, 361, 0, 0}, {239, 0, -1, 0}, {334, 243, 0, 0}};
+constexpr ExpectedGlyph kMyanmarGlyphs5[] = {{2, 599, 0, 0},   {332, 137, 0, 0}, {22, 304, 0, 0},  {347, 0, 1, 0},
+                                             {338, 330, 0, 0}, {18, 599, 0, 0},  {334, 243, 0, 0}, {347, 0, -1, 0}};
+constexpr ExpectedGlyph kMyanmarGlyphs6[] = {{338, 330, 0, 0}, {166, 122, 0, 0}, {2, 599, 0, 0}, {334, 243, 0, 0},
+                                             {6, 347, 0, 0},   {344, 0, 0, 0},   {347, 0, 0, 0}};
+constexpr ExpectedGlyph kMyanmarGlyphs7[] = {{45, 122, 0, 0}, {27, 361, 0, 0}, {22, 304, 0, 0},
+                                             {347, 0, 1, 0},  {27, 361, 0, 0}, {334, 243, 0, 0}};
+constexpr ExpectedGlyph kMyanmarGlyphs8[] = {{50, 360, 0, 0}, {48, 348, 0, 0}, {50, 360, 0, 0}, {54, 384, 0, 0}};
+
+constexpr ExpectedShaping kMyanmarShaping[] = {
+    {"\xE1\x80\x99\xE1\x80\xBC\xE1\x80\x94\xE1\x80\xBA\xE1\x80\x99\xE1\x80\xAC", "", kMyanmarGlyphs0, 6},  // မြန်မာ
+    {"\xE1\x80\x80\xE1\x80\xBB\xE1\x80\xB1\xE1\x80\xB8\xE1\x80\x87\xE1\x80\xB0\xE1\x80\xB8", "", kMyanmarGlyphs1,
+     7},  // ကျေးဇူး
+    {"\xE1\x80\x99\xE1\x80\x84\xE1\x80\xBA\xE1\x80\xB9\xE1\x80\x82\xE1\x80\x9C\xE1\x80\xAC\xE1\x80\x95\xE1\x80\xAB", "",
+     kMyanmarGlyphs2, 7},  // မင်္ဂလာပါ
+    {"\xE1\x80\x9E\xE1\x80\x84\xE1\x80\xBA\xE1\x80\xB9\xE1\x80\x98\xE1\x80\xB1\xE1\x80\xAC", "", kMyanmarGlyphs3,
+     5},                                                                                       // သင်္ဘော
+    {"\xE1\x80\x80\xE1\x80\x99\xE1\x80\xB9\xE1\x80\x98\xE1\x80\xAC", "", kMyanmarGlyphs4, 4},  // ကမ္ဘာ
+    {"\xE1\x80\x80\xE1\x80\xBB\xE1\x80\xBD\xE1\x80\x94\xE1\x80\xBA\xE1\x80\x90\xE1\x80\xB1\xE1\x80\xAC\xE1\x80\xBA", "",
+     kMyanmarGlyphs5, 8},  // ကျွန်တော်
+    {"\xE1\x80\x80\xE1\x80\xBC\xE1\x80\xB1\xE1\x80\xAC\xE1\x80\x84\xE1\x80\xB7\xE1\x80\xBA", "", kMyanmarGlyphs6,
+     7},  // ကြောင့်
+    {"\xE1\x80\x99\xE1\x80\xBC\xE1\x80\x94\xE1\x80\xBA\xE1\x80\x99\xE1\x80\xAC", "my", kMyanmarGlyphs7,
+     6},                                                                           // မြန်မာ (my)
+    {"\xE1\x81\x82\xE1\x81\x80\xE1\x81\x82\xE1\x81\x86", "", kMyanmarGlyphs8, 4},  // ၂၀၂၆
+};
+
 constexpr ShapingFixture kShapingFixtures[] = {
     {"Bengali", "NotoSansBengali-Regular.layout", kBengaliShaping,
      sizeof(kBengaliShaping) / sizeof(kBengaliShaping[0])},
@@ -214,4 +249,6 @@ constexpr ShapingFixture kShapingFixtures[] = {
     {"Tamil", "NotoSansTamil-Regular.layout", kTamilShaping, sizeof(kTamilShaping) / sizeof(kTamilShaping[0])},
     {"Sinhala", "NotoSansSinhala-Regular.layout", kSinhalaShaping,
      sizeof(kSinhalaShaping) / sizeof(kSinhalaShaping[0])},
+    {"Myanmar", "NotoSansMyanmar-Regular.layout", kMyanmarShaping,
+     sizeof(kMyanmarShaping) / sizeof(kMyanmarShaping[0])},
 };
