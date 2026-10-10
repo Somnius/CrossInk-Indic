@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <initializer_list>
 #include <string>
+#include <vector>
 
 #include "IndicReorder.h"
 #include "IndicScripts.h"
@@ -234,4 +235,57 @@ TEST(IndicLineBreaks, NeverSplitASyllableInAnyScript) {
   EXPECT_FALSE(indic::syllableBreakAllowed(indic::ZWJ, 0x0DC2));
   EXPECT_TRUE(indic::syllableBreakAllowed(DEVA_I, DEVA_KA));
   EXPECT_TRUE(indic::syllableBreakAllowed(0x0C3F, 0x0C15));  // Telugu: after a vowel sign
+}
+
+namespace {
+// Where ParsedText may break Burmese (it skips the dot below for `next` too).
+std::vector<size_t> myanmarBreaks(const std::vector<uint32_t>& text) {
+  std::vector<size_t> out;
+  for (size_t i = 1; i < text.size(); i++) {
+    size_t j = i + 1;
+    while (j < text.size() && text[j] == indic::MYANMAR_DOT_BELOW) j++;
+    if (indic::myanmarBreakBefore(text[i - 1], text[i], j < text.size() ? text[j] : 0)) out.push_back(i);
+  }
+  return out;
+}
+}  // namespace
+
+TEST(MyanmarScript, IsAComplexScriptRun) {
+  ASSERT_NE(indic::scriptOf(0x1000), nullptr);
+  EXPECT_STREQ(indic::scriptOf(0x1000)->name, "Myanmar");
+  EXPECT_EQ(indic::scriptOf(0x109F), indic::scriptOf(0x1000));
+  EXPECT_EQ(indic::scriptOf(0x10A0), nullptr);  // Georgian
+  EXPECT_TRUE(indic::containsIndic(cps({'a', 0x1019, 0x103C, 0x1014, 0x103A}).c_str()));
+  EXPECT_TRUE(indic::containsIndic(cps({0x109F}).c_str()));
+  EXPECT_FALSE(indic::containsIndic(cps({0x10A0, 0x0FFF}).c_str()));  // Georgian, Tibetan
+}
+
+TEST(MyanmarLineBreaks, BreaksBetweenSyllablesOnly) {
+  // ကော်ကို: after the vowel's asat, before the next syllable.
+  EXPECT_EQ(myanmarBreaks({0x1000, 0x1031, 0x102C, 0x103A, 0x1000, 0x102D, 0x102F}), (std::vector<size_t>{4}));
+  // ကြောင့်လည်း: not before nga, which dot below + asat make the final.
+  EXPECT_EQ(myanmarBreaks({0x1000, 0x103C, 0x1031, 0x102C, 0x1004, 0x1037, 0x103A, 0x101C, 0x100A, 0x103A, 0x1038}),
+            (std::vector<size_t>{7}));
+}
+
+TEST(MyanmarLineBreaks, KeepsKinziAndStackedConsonantsWithTheirSyllables) {
+  // မင်္ဂလာ: kinzi nga and the ga under it stay together.
+  EXPECT_EQ(myanmarBreaks({0x1019, 0x1004, 0x103A, 0x1039, 0x1002, 0x101C, 0x102C}), (std::vector<size_t>{5}));
+  // ကမ္ဘာ: ma stacks bha below; no break at all.
+  EXPECT_TRUE(myanmarBreaks({0x1000, 0x1019, 0x1039, 0x1018, 0x102C}).empty());
+}
+
+TEST(MyanmarLineBreaks, KeepsNumbersWhole) {
+  // ၂၀၂၆ခုနှစ်: after the number and between ခု and နှစ်, not inside the number.
+  EXPECT_EQ(myanmarBreaks({0x1042, 0x1040, 0x1042, 0x1046, 0x1001, 0x102F, 0x1014, 0x103E, 0x1005, 0x103A}),
+            (std::vector<size_t>{4, 6}));
+}
+
+TEST(MyanmarLineBreaks, CodepointSplitsNeverCutAMyanmarCluster) {
+  EXPECT_FALSE(indic::syllableBreakAllowed(0x1000, 0x103C, 0x1031));  // before medial ra
+  EXPECT_FALSE(indic::syllableBreakAllowed(0x1039, 0x1018, 0x102C));  // under the stacker
+  EXPECT_FALSE(indic::syllableBreakAllowed(0x102C, 0x1004, 0x103A));  // before a final
+  EXPECT_FALSE(indic::syllableBreakAllowed(0x1038, 0x104B, 0));       // before ။
+  EXPECT_TRUE(indic::syllableBreakAllowed(0x1038, 0x101C, 0x100A));
+  EXPECT_TRUE(indic::syllableBreakAllowed('x', 0x1000, 0x102C));
 }
