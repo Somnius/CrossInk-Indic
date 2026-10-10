@@ -64,6 +64,7 @@ const std::vector<Fixture>& fixtures() {
        {"हिन्दी", "प्रार्थना", "र्‍य", "संस्कृतम्", "क़िला", "द्ध्र्य"}},
       {"NotoSansTamil-Regular.layout", ot::Script::Tamil, {"பொன்னியின்", "ஸ்ரீ", "க்ஷ"}},
       {"NotoSansSinhala-Regular.layout", ot::Script::Sinhala, {"ශ්‍රී", "ක්‍ෂ", "කෞ", "සිංහල"}},
+      {"NotoSansMyanmar-Regular.layout", ot::Script::Myanmar, {"မင်္ဂလာပါ", "ကျွန်တော်", "ကြောင့်", "ကမ္ဘာ"}},
   };
   return all;
 }
