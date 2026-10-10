@@ -60,6 +60,8 @@ constexpr uint8_t SCRIPT_BUILD_INDEX = 7;
 constexpr uint8_t SCRIPT_BUILD_INDEX = 8;
 #elif defined(CROSSINK_SCRIPT_SINHALA)
 constexpr uint8_t SCRIPT_BUILD_INDEX = 9;
+#elif defined(CROSSINK_SCRIPT_MYANMAR)
+constexpr uint8_t SCRIPT_BUILD_INDEX = 10;
 #else
 constexpr uint8_t SCRIPT_BUILD_INDEX = 0;  // Devanagari
 #endif

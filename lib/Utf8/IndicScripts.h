@@ -6,8 +6,9 @@
 #include <iterator>
 
 // The Indic scripts CrossPoint shapes (Brahmic scripts written with spaces
-// between words): what the shaper, line breaking, font probes and the
-// unshaped fallback need to know about each one.
+// between words), and Myanmar (Brahmic too, written without spaces between
+// words): what the shaper, line breaking, font probes and the unshaped
+// fallback need to know about each one.
 //
 // Mirrored by SCRIPTS in lib/EpdFont/scripts/shaping_blob.py, which builds the
 // layout tables .cpfont files carry for these scripts.
@@ -15,11 +16,12 @@ namespace indic {
 
 struct ScriptInfo {
   const char* name;
-  uint32_t first;   // first codepoint of the script's 128-codepoint Unicode block
-  uint32_t isoTag;  // ISO 15924 code packed big-endian, as hb_script_from_iso15924_tag() takes it
-  uint32_t probe;   // letter KA: a font that maps it draws the script
+  uint32_t first;       // first codepoint of the script's Unicode block
+  uint32_t isoTag;      // ISO 15924 code packed big-endian, as hb_script_from_iso15924_tag() takes it
+  uint32_t probe;       // letter KA: a font that maps it draws the script
+  uint32_t lastCp = 0;  // last codepoint of the block; 0: a 128-codepoint block
 
-  constexpr uint32_t last() const { return first + 0x7F; }
+  constexpr uint32_t last() const { return lastCp ? lastCp : first + 0x7F; }
 };
 
 constexpr uint32_t isoTag(const char (&code)[5]) {
@@ -27,28 +29,36 @@ constexpr uint32_t isoTag(const char (&code)[5]) {
          (static_cast<uint32_t>(code[2]) << 8) | static_cast<uint32_t>(code[3]);
 }
 
-// Consecutive Unicode blocks from U+0900, so scriptOf() is an index.
+// The Indic scripts are consecutive 128-codepoint blocks from U+0900, so
+// scriptOf() is an index; Myanmar (U+1000-109F) comes last. Same order as
+// ot::Script.
 inline constexpr ScriptInfo SCRIPTS[] = {
-    {"Devanagari", 0x0900, isoTag("Deva"), 0x0915},  // Hindi, Marathi, Nepali, Sanskrit
-    {"Bengali", 0x0980, isoTag("Beng"), 0x0995},     // Bengali, Assamese
-    {"Gurmukhi", 0x0A00, isoTag("Guru"), 0x0A15},    // Punjabi
-    {"Gujarati", 0x0A80, isoTag("Gujr"), 0x0A95},    // Gujarati
-    {"Oriya", 0x0B00, isoTag("Orya"), 0x0B15},       // Odia
-    {"Tamil", 0x0B80, isoTag("Taml"), 0x0B95},       // Tamil
-    {"Telugu", 0x0C00, isoTag("Telu"), 0x0C15},      // Telugu
-    {"Kannada", 0x0C80, isoTag("Knda"), 0x0C95},     // Kannada
-    {"Malayalam", 0x0D00, isoTag("Mlym"), 0x0D15},   // Malayalam
-    {"Sinhala", 0x0D80, isoTag("Sinh"), 0x0D9A},     // Sinhala
+    {"Devanagari", 0x0900, isoTag("Deva"), 0x0915},       // Hindi, Marathi, Nepali, Sanskrit
+    {"Bengali", 0x0980, isoTag("Beng"), 0x0995},          // Bengali, Assamese
+    {"Gurmukhi", 0x0A00, isoTag("Guru"), 0x0A15},         // Punjabi
+    {"Gujarati", 0x0A80, isoTag("Gujr"), 0x0A95},         // Gujarati
+    {"Oriya", 0x0B00, isoTag("Orya"), 0x0B15},            // Odia
+    {"Tamil", 0x0B80, isoTag("Taml"), 0x0B95},            // Tamil
+    {"Telugu", 0x0C00, isoTag("Telu"), 0x0C15},           // Telugu
+    {"Kannada", 0x0C80, isoTag("Knda"), 0x0C95},          // Kannada
+    {"Malayalam", 0x0D00, isoTag("Mlym"), 0x0D15},        // Malayalam
+    {"Sinhala", 0x0D80, isoTag("Sinh"), 0x0D9A},          // Sinhala
+    {"Myanmar", 0x1000, isoTag("Mymr"), 0x1000, 0x109F},  // Burmese
 };
 inline constexpr size_t SCRIPT_COUNT = sizeof(SCRIPTS) / sizeof(SCRIPTS[0]);
-inline constexpr uint32_t FIRST_CODEPOINT = 0x0900;
+inline constexpr size_t MYANMAR = SCRIPT_COUNT - 1;            // index in SCRIPTS
+inline constexpr size_t INDIC_BLOCK_COUNT = SCRIPT_COUNT - 1;  // the consecutive blocks
+inline constexpr uint32_t FIRST_CODEPOINT = 0x0900;            // of the consecutive blocks
 inline constexpr uint32_t LAST_CODEPOINT = 0x0DFF;
+inline constexpr uint32_t MYANMAR_FIRST = 0x1000;
+inline constexpr uint32_t MYANMAR_LAST = 0x109F;
 
 constexpr bool scriptsAreConsecutiveBlocks() {
-  for (size_t i = 0; i < SCRIPT_COUNT; i++) {
+  for (size_t i = 0; i < INDIC_BLOCK_COUNT; i++) {
     if (SCRIPTS[i].first != FIRST_CODEPOINT + 0x80 * i) return false;
   }
-  return SCRIPTS[SCRIPT_COUNT - 1].last() == LAST_CODEPOINT;
+  return SCRIPTS[INDIC_BLOCK_COUNT - 1].last() == LAST_CODEPOINT && SCRIPTS[MYANMAR].first == MYANMAR_FIRST &&
+         SCRIPTS[MYANMAR].last() == MYANMAR_LAST;
 }
 static_assert(scriptsAreConsecutiveBlocks(), "scriptOf() indexes SCRIPTS by block");
 
@@ -65,28 +75,46 @@ constexpr bool isShared(const uint32_t cp) {
          cp == DOTTED_CIRCLE;
 }
 
-// The script `cp` is written in, or nullptr for shared and non-Indic codepoints.
+constexpr bool isMyanmar(const uint32_t cp) { return cp >= MYANMAR_FIRST && cp <= MYANMAR_LAST; }
+
+// The script `cp` is written in, or nullptr for shared and other codepoints.
 constexpr const ScriptInfo* scriptOf(const uint32_t cp) {
+  if (isMyanmar(cp)) return &SCRIPTS[MYANMAR];
   if (cp < FIRST_CODEPOINT || cp > LAST_CODEPOINT || isShared(cp)) return nullptr;
   return &SCRIPTS[(cp - FIRST_CODEPOINT) >> 7];
 }
 
+// Whether `cp` is in one of the scripts above.
+constexpr bool isComplexScript(const uint32_t cp) {
+  return isMyanmar(cp) || (cp >= FIRST_CODEPOINT && cp <= LAST_CODEPOINT);
+}
+
 constexpr size_t indexOf(const ScriptInfo& script) { return static_cast<size_t>(&script - SCRIPTS); }
 
-// True when `utf8` contains any codepoint of the Indic blocks. A byte scan:
-// U+0900-U+0DFF encode as E0 A4 xx .. E0 B7 xx.
+// Whether the UTF-8 sequence at `p` (at least 3 readable bytes, or a NUL
+// before them) starts a codepoint of these scripts: U+0900-U+0DFF encode as
+// E0 A4 xx .. E0 B7 xx, U+1000-U+109F as E1 80 xx .. E1 82 9F.
+inline bool startsComplexScriptBytes(const unsigned char* p) {
+  if (p[0] == 0xE0) return p[1] >= 0xA4 && p[1] <= 0xB7;
+  if (p[0] != 0xE1 || p[1] < 0x80 || p[1] > 0x82) return false;
+  return p[1] < 0x82 || (p[2] >= 0x80 && p[2] <= 0x9F);
+}
+
+// True when `utf8` contains any codepoint of these scripts. A byte scan.
 inline bool containsIndic(const char* utf8) {
   if (utf8 == nullptr) return false;
   for (const auto* p = reinterpret_cast<const unsigned char*>(utf8); *p; ++p) {
-    if (p[0] == 0xE0 && p[1] >= 0xA4 && p[1] <= 0xB7) return true;
+    if (p[1] != 0 && startsComplexScriptBytes(p)) return true;
   }
   return false;
 }
 
 // Viramas (Unicode canonical combining class 9): they kill a consonant's
 // inherent vowel and, in most scripts, bind the next consonant into a conjunct.
-inline constexpr uint32_t VIRAMAS[] = {0x094D, 0x09CD, 0x0A4D, 0x0ACD, 0x0B4D, 0x0BCD,
-                                       0x0C4D, 0x0CCD, 0x0D3B, 0x0D3C, 0x0D4D, 0x0DCA};
+// Myanmar's is the invisible stacker (U+1039); its visible killer, asat
+// (U+103A), ends a syllable instead.
+inline constexpr uint32_t VIRAMAS[] = {0x094D, 0x09CD, 0x0A4D, 0x0ACD, 0x0B4D, 0x0BCD, 0x0C4D,
+                                       0x0CCD, 0x0D3B, 0x0D3C, 0x0D4D, 0x0DCA, 0x1039};
 // Nuktas (combining class 7): a dot below that makes a new consonant.
 inline constexpr uint32_t NUKTAS[] = {0x093C, 0x09BC, 0x0A3C, 0x0ABC, 0x0B3C, 0x0C3C, 0x0CBC};
 
@@ -185,10 +213,20 @@ inline constexpr CodepointRange DEPENDENT_SIGNS[] = {
     {0x0DD6, 0x0DD6},
     {0x0DD8, 0x0DDF},
     {0x0DF2, 0x0DF3},
+    // Myanmar
+    {0x102B, 0x103E},
+    {0x1056, 0x1059},
+    {0x105E, 0x1060},
+    {0x1062, 0x1064},
+    {0x1067, 0x106D},
+    {0x1071, 0x1074},
+    {0x1082, 0x108D},
+    {0x108F, 0x108F},
+    {0x109A, 0x109D},
 };
 
 constexpr bool isDependentSign(const uint32_t cp) {
-  if (cp < FIRST_CODEPOINT || cp > LAST_CODEPOINT) return false;
+  if (cp < FIRST_CODEPOINT || cp > MYANMAR_LAST) return false;
   size_t lo = 0;
   size_t hi = sizeof(DEPENDENT_SIGNS) / sizeof(DEPENDENT_SIGNS[0]);
   while (lo < hi) {
@@ -213,6 +251,36 @@ constexpr bool syllableBreakAllowed(const uint32_t prev, const uint32_t cur) {
   if (isDependentSign(cur) || isVirama(prev)) return false;
   if ((cur == ZWNJ || cur == ZWJ) && scriptOf(prev) != nullptr) return false;
   return !(prev == ZWJ && scriptOf(cur) != nullptr);
+}
+
+// Letters, digits and symbols a Myanmar syllable starts with (Burmese and
+// Pali; not the Shan, Mon and Karen extensions).
+constexpr bool isMyanmarSyllableStart(const uint32_t cp) {
+  return (cp >= 0x1000 && cp <= 0x102A) || cp == 0x103F || (cp >= 0x1040 && cp <= 0x1049) ||
+         (cp >= 0x104C && cp <= 0x104F) || (cp >= 0x1050 && cp <= 0x1055);
+}
+
+constexpr bool isMyanmarDigit(const uint32_t cp) { return cp >= 0x1040 && cp <= 0x1049; }
+
+constexpr uint32_t MYANMAR_DOT_BELOW = 0x1037;
+
+// Burmese is written without spaces between words, so lines break between
+// syllables: before a letter that starts one. Not before a consonant the
+// stacker (U+1039) binds below the previous one, nor before a consonant that
+// asat (U+103A) or the stacker makes the previous syllable's final (as in
+// kinzi), nor inside a number. `next` is the first codepoint after `cur`
+// other than the dot below (U+1037, stored before asat in ကြောင့်), 0 at the
+// end of the text.
+constexpr bool myanmarBreakBefore(const uint32_t prev, const uint32_t cur, const uint32_t next) {
+  if (!isMyanmarSyllableStart(cur) || prev == 0 || prev == 0x1039 || prev == ZWJ) return false;
+  if (next == 0x103A || next == 0x1039) return false;
+  return !(isMyanmarDigit(prev) && isMyanmarDigit(cur));
+}
+
+// syllableBreakAllowed() with the codepoint after `cur`, which Myanmar needs.
+constexpr bool syllableBreakAllowed(const uint32_t prev, const uint32_t cur, const uint32_t next) {
+  if (isMyanmar(cur) && !isDependentSign(cur)) return myanmarBreakBefore(prev, cur, next) || !isMyanmar(prev);
+  return syllableBreakAllowed(prev, cur);
 }
 
 }  // namespace indic

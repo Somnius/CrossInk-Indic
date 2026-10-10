@@ -94,6 +94,11 @@ constexpr PreBaseVowel kSinhalaPreBase[] = {
     {0x0DD9, 0x0DD9, {}},       {0x0DDA, 0x0DD9, {0x0DCA}},         {0x0DDB, 0x0DDB, {}},
     {0x0DDC, 0x0DD9, {0x0DCF}}, {0x0DDD, 0x0DD9, {0x0DCF, 0x0DCA}}, {0x0DDE, 0x0DD9, {0x0DDF}}};
 
+// Myanmar: e (U+1031) and medial ra (U+103C) are drawn before the consonant;
+// the stacker (U+1039) binds the next consonant below. No reph.
+constexpr CodepointRange kMyanmarConsonants[] = {{0x1000, 0x1021}, {0x103F, 0x103F}};
+constexpr PreBaseVowel kMyanmarPreBase[] = {{0x103C, 0x103C, {}}, {0x1031, 0x1031, {}}};
+
 // Indexed like indic::SCRIPTS.
 constexpr ScriptRules kRules[] = {
     {span(kDevanagariConsonants), 0x0930, true, span(kDevanagariPreBase), span(kDevanagariNukta)},
@@ -106,6 +111,7 @@ constexpr ScriptRules kRules[] = {
     {span(kKannadaConsonants), 0x0CB0, true, {}, {}},
     {span(kMalayalamConsonants), 0x0D30, true, span(kMalayalamPreBase), {}},
     {span(kSinhalaConsonants), 0x0DBB, false, span(kSinhalaPreBase), {}},
+    {span(kMyanmarConsonants), 0, true, span(kMyanmarPreBase), {}},
 };
 static_assert(sizeof(kRules) / sizeof(kRules[0]) == indic::SCRIPT_COUNT, "one rule set per indic::SCRIPTS entry");
 

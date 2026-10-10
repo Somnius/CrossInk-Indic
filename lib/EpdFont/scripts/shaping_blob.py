@@ -38,12 +38,17 @@ FLASH_SLOT_BYTES = 128 * 1024
 
 
 class Script(NamedTuple):
-    first: int  # first codepoint of the 128-codepoint Unicode block
-    ot_tags: tuple  # OpenType script tags: Indic v1 and v2 (Sinhala has one)
+    first: int  # first codepoint of the Unicode block
+    ot_tags: tuple  # OpenType script tags: Indic v1 and v2 (Sinhala has one; Myanmar's spec tag and the older one)
     probe: int  # letter KA: a font that maps it draws the script
+    size: int = 0x80  # codepoints in the block
+
+    @property
+    def last(self):
+        return self.first + self.size - 1
 
     def unicodes(self):
-        return range(self.first, self.first + 0x80)
+        return range(self.first, self.first + self.size)
 
 
 # Mirrors indic::SCRIPTS in lib/Utf8/IndicScripts.h.
@@ -58,6 +63,7 @@ SCRIPTS = {
     "kannada":    Script(0x0C80, ("knda", "knd2"), 0x0C95),
     "malayalam":  Script(0x0D00, ("mlym", "mlm2"), 0x0D15),
     "sinhala":    Script(0x0D80, ("sinh",), 0x0D9A),
+    "myanmar":    Script(0x1000, ("mym2", "mymr"), 0x1000, 0xA0),
 }
 
 # Codepoints every Indic script shares (indic::isShared): dandas, ZWNJ/ZWJ
@@ -322,9 +328,9 @@ _FF_RANDOM, _FF_PER_SYLLABLE = 0x20, 0x40
 _LB_AUTO_ZWNJ, _LB_AUTO_ZWJ, _LB_RANDOM, _LB_PER_SYLLABLE = 0x01, 0x02, 0x04, 0x08
 
 # ot::ShaperKind and ot::Pause, in declaration order.
-_SHAPER_DEFAULT, _SHAPER_INDIC, _SHAPER_USE = 0, 1, 2
+_SHAPER_DEFAULT, _SHAPER_INDIC, _SHAPER_USE, _SHAPER_MYANMAR = 0, 1, 2, 3
 (_P_NONE, _P_INDIC_SETUP, _P_INDIC_INITIAL, _P_INDIC_FINAL, _P_USE_SETUP, _P_USE_CLEAR,
- _P_USE_RPHF, _P_USE_PREF, _P_USE_REORDER) = range(9)
+ _P_USE_RPHF, _P_USE_PREF, _P_USE_REORDER, _P_MYANMAR_SETUP, _P_MYANMAR_REORDER) = range(11)
 
 # Mirrors SCRIPT_TAGS in lib/OtShaper/OtPlan.cpp (v3, v2, v1), in SCRIPTS order.
 _PLAN_SCRIPT_TAGS = {
@@ -332,7 +338,7 @@ _PLAN_SCRIPT_TAGS = {
     "gurmukhi": ("gur3", "gur2", "guru"), "gujarati": ("gjr3", "gjr2", "gujr"),
     "oriya": ("ory3", "ory2", "orya"), "tamil": ("tml3", "tml2", "taml"),
     "telugu": ("tel3", "tel2", "telu"), "kannada": ("knd3", "knd2", "knda"),
-    "malayalam": ("mlm3", "mlm2", "mlym"), "sinhala": ("sinh",),
+    "malayalam": ("mlm3", "mlm2", "mlym"), "sinhala": ("sinh",), "myanmar": ("mym2", "mymr"),
 }
 
 # ot::MASKED_FEATURE_TAGS and the would-substitute features, in order.
@@ -536,6 +542,18 @@ def _collect_features(b, shaper):
         b.pause(_GSUB, _P_NONE)
         for t in ("abvs", "blws", "haln", "pres", "psts"):
             b.enable(t, _FF_MANUAL_ZWJ)
+    elif shaper == _SHAPER_MYANMAR:
+        b.simple = False
+        b.pause(_GSUB, _P_MYANMAR_SETUP)
+        b.enable("locl", _FF_PER_SYLLABLE)
+        b.enable("ccmp", _FF_PER_SYLLABLE)
+        b.pause(_GSUB, _P_MYANMAR_REORDER)
+        for t in ("rphf", "pref", "blwf", "pstf"):
+            b.enable(t, _FF_MANUAL_ZWJ | _FF_PER_SYLLABLE)
+            b.pause(_GSUB, _P_NONE)
+        b.pause(_GSUB, _P_NONE)
+        for t in ("pres", "abvs", "blws", "psts"):
+            b.enable(t, _FF_MANUAL_ZWJ)
     b.enable("Buzz")
     b.enable("BUZZ")
     for t in ("abvm", "blwm", "ccmp", "locl"):
@@ -564,6 +582,8 @@ def _plan(layouts, script, language_tags):
     chosen = systems[_GSUB][0]
     if chosen in (_tag("DFLT"), _tag("latn")):
         shaper = _SHAPER_DEFAULT
+    elif script == "myanmar":
+        shaper = _SHAPER_DEFAULT if chosen == _tag("mymr") else _SHAPER_MYANMAR
     elif script == "sinhala" or (chosen & 0xFF) == ord("3"):
         shaper = _SHAPER_USE
     else:

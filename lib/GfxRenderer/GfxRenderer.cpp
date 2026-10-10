@@ -401,11 +401,10 @@ int GfxRenderer::resolveTextFontId(const int fontId, const char* text, const Epd
     if (utf8IsCjkCodepoint(cp) && !primary.hasCodepoint(cp, style) && fallback.hasCodepoint(cp, style)) {
       return fallbackFontId;
     }
-    // Indic text (CrossPoint #3787): the built-in UI fonts have none, so book
-    // titles, TOC entries and the status bar draw in the SD fallback, which
-    // also shapes them.
-    if (cp >= indic::FIRST_CODEPOINT && cp <= indic::LAST_CODEPOINT && !primary.hasCodepoint(cp, style) &&
-        fallback.hasCodepoint(cp, style)) {
+    // Indic and Myanmar text (CrossPoint #3787): the built-in UI fonts have
+    // none, so book titles, TOC entries and the status bar draw in the SD
+    // fallback, which also shapes them.
+    if (indic::isComplexScript(cp) && !primary.hasCodepoint(cp, style) && fallback.hasCodepoint(cp, style)) {
       return fallbackFontId;
     }
   }

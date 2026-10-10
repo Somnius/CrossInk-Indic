@@ -4,8 +4,8 @@
 #   scripts/build-indic.sh read <script> [env ...]   English menus, <script> built in
 #   scripts/build-indic.sh lang <code>   [env ...]   English + <code> menus, its script built in
 #
-# <script>: devanagari bengali gurmukhi gujarati oriya tamil telugu kannada malayalam sinhala
-# <code>:   hi mr ne bn as pa gu or ta te kn ml si
+# <script>: devanagari bengali gurmukhi gujarati oriya tamil telugu kannada malayalam sinhala myanmar
+# <code>:   hi mr ne bn as pa gu or ta te kn ml si my
 # envs default to: default x4-pro sticky x4-classic (or a *-simulator env).
 # Set CROSSINK_INDIC_VERSION (e.g. 1.6.0-indic.2) to stamp release builds; the
 # variant is appended (1.6.0-indic.2-ta, 1.6.0-indic.2-read-tamil) so the
@@ -16,7 +16,7 @@ cd "$(dirname "$0")/.."
 
 declare -A LANG_SCRIPT=(
   [hi]=devanagari [mr]=devanagari [ne]=devanagari [bn]=bengali [as]=bengali [pa]=gurmukhi
-  [gu]=gujarati [or]=oriya [ta]=tamil [te]=telugu [kn]=kannada [ml]=malayalam [si]=sinhala
+  [gu]=gujarati [or]=oriya [ta]=tamil [te]=telugu [kn]=kannada [ml]=malayalam [si]=sinhala [my]=myanmar
 )
 # Translation codes that differ from the build code (MR is an Xtensa register
 # macro, SI was taken).
@@ -29,7 +29,7 @@ envs=("$@")
 
 case "$mode" in
   read) script=$what; variant="read-$script"; langs=en
-        case " devanagari bengali gurmukhi gujarati oriya tamil telugu kannada malayalam sinhala " in
+        case " devanagari bengali gurmukhi gujarati oriya tamil telugu kannada malayalam sinhala myanmar " in
           *" $script "*) ;;
           *) echo "unknown script $script" >&2; exit 2 ;;
         esac ;;

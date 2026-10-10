@@ -1,0 +1,7 @@
+Source URL: https://unicode.org/udhr/d/udhr_mya.xml (Unicode UDHR in Unicode project)
+Work: အပြည်ပြည်ဆိုင်ရာ လူ့အခွင့်အရေး ကြေညာစာတမ်း, the Universal Declaration of Human Rights in Burmese
+Author: United Nations (translation as published by the OHCHR)
+Extent / edits: the preamble and articles 1-6, one paragraph each, Unicode NFC. No other edits.
+Rights: the UN states the UDHR and its translations may be freely reproduced.
+Story word count (whitespace tokens, excl. title): 312. Burmese puts spaces between phrases, not words, so these tokens are long: the text exercises syllable line breaking.
+Torture lines: written for this test (medials, kinzi, stacked consonants, vowels, asat and tones, digits, punctuation, mixed English); a Burmese reader should proof them.

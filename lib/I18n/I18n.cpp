@@ -75,7 +75,7 @@ constexpr ScriptLanguage kScriptLanguages[] = {
     {"HI", 0x0915, "Hindi"},    {"MAR", 0x0915, "Marathi"}, {"NE", 0x0915, "Nepali"},   {"BN", 0x0995, "Bengali"},
     {"AS", 0x0995, "Assamese"}, {"PA", 0x0A15, "Punjabi"},  {"GU", 0x0A95, "Gujarati"}, {"OR", 0x0B15, "Odia"},
     {"TA", 0x0B95, "Tamil"},    {"TE", 0x0C15, "Telugu"},   {"KN", 0x0C95, "Kannada"},  {"ML", 0x0D15, "Malayalam"},
-    {"SIN", 0x0D9A, "Sinhala"},
+    {"SIN", 0x0D9A, "Sinhala"}, {"MY", 0x1000, "Burmese"},
 };
 
 const ScriptLanguage* scriptLanguage(const Language lang) {

@@ -669,10 +669,14 @@ def extract_kerning_fonttools(font_path, codepoints, ppem, pnum_subs=None):
             lookup = gpos.LookupList.Lookup[li]
             for st in lookup.SubTable:
                 actual = st
+                lookup_type = lookup.LookupType
                 # Unwrap Extension (lookup type 9) wrappers
                 if lookup.LookupType == 9 and hasattr(st, 'ExtSubTable'):
                     actual = st.ExtSubTable
-                if hasattr(actual, 'Format'):
+                    lookup_type = st.ExtensionLookupType
+                # Only pair adjustments: 'kern' may also hold single and
+                # contextual positioning (Noto Sans Myanmar does).
+                if lookup_type == 2 and hasattr(actual, 'Format'):
                     _extract_pairpos_subtable(actual, glyph_to_cp, raw_kern)
 
     font.close()

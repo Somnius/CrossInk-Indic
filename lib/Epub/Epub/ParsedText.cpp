@@ -179,6 +179,7 @@ std::vector<size_t> cjkCharacterBreakByteOffsets(const std::string& text) {
   std::vector<CodepointBoundary> codepoints;
   codepoints.reserve(text.size());
   bool hasCjkBreakable = false;
+  bool hasMyanmar = false;
 
   const auto* ptr = reinterpret_cast<const unsigned char*>(text.c_str());
   const auto* const start = ptr;
@@ -188,15 +189,23 @@ std::vector<size_t> cjkCharacterBreakByteOffsets(const std::string& text) {
     if (utf8IsCjkBreakable(cp)) {
       hasCjkBreakable = true;
     }
+    hasMyanmar |= indic::isMyanmar(cp);
     codepoints.push_back({cp, static_cast<size_t>(ptr - start)});
   }
 
-  if (!hasCjkBreakable || codepoints.size() < 2) return {};
+  if ((!hasCjkBreakable && !hasMyanmar) || codepoints.size() < 2) return {};
 
   std::vector<size_t> allowedOffsets;
   allowedOffsets.reserve(codepoints.size() - 1);
   for (size_t i = 0; i + 1 < codepoints.size(); ++i) {
-    if (!hasCjkBreakOpportunityBetween(codepoints[i].cp, codepoints[i + 1].cp)) continue;
+    // Burmese has no spaces between words either: it breaks between syllables.
+    size_t j = i + 2;
+    while (j < codepoints.size() && codepoints[j].cp == indic::MYANMAR_DOT_BELOW) ++j;
+    const uint32_t next = j < codepoints.size() ? codepoints[j].cp : 0;
+    if (!hasCjkBreakOpportunityBetween(codepoints[i].cp, codepoints[i + 1].cp) &&
+        !indic::myanmarBreakBefore(codepoints[i].cp, codepoints[i + 1].cp, next)) {
+      continue;
+    }
     allowedOffsets.push_back(codepoints[i].endOffset);
   }
   return allowedOffsets;
@@ -289,13 +298,11 @@ uint32_t lastCodepointBeforeByteOffset(const std::string& word, const size_t byt
   return utf8NextCodepoint(&ptr);
 }
 
-// Indic text (U+0900-U+0DFF) encodes as E0 A4..B7 xx; a byte scan works on
-// views that are not NUL-terminated.
+// Indic and Myanmar text (indic::startsComplexScriptBytes); a byte scan that
+// works on views that are not NUL-terminated.
 bool containsIndicBytes(const std::string_view text) {
-  for (size_t i = 0; i + 1 < text.size(); ++i) {
-    const auto lead = static_cast<unsigned char>(text[i]);
-    const auto next = static_cast<unsigned char>(text[i + 1]);
-    if (lead == 0xE0 && next >= 0xA4 && next <= 0xB7) return true;
+  for (size_t i = 0; i + 2 < text.size(); ++i) {
+    if (indic::startsComplexScriptBytes(reinterpret_cast<const unsigned char*>(text.data() + i))) return true;
   }
   return false;
 }
@@ -622,8 +629,17 @@ void ParsedText::addWord(std::string word, const EpdFontFamily::Style fontStyle,
   // previous one in the source) may be turned into a gap-less break opportunity. When real
   // whitespace separated the two words, that space is content and must be rendered: Korean
   // is a space-delimited script written in Hangul, which utf8IsCjkBreakable() covers.
+  const auto secondCodepoint = [&word]() {  // skipping the dot below, as myanmarBreakBefore() wants
+    const auto* ptr = reinterpret_cast<const unsigned char*>(word.c_str());
+    if (!utf8NextCodepoint(&ptr)) return 0u;
+    uint32_t cp;
+    while ((cp = utf8NextCodepoint(&ptr)) == indic::MYANMAR_DOT_BELOW) {
+    }
+    return cp;
+  };
   if (attachToPrevious && !words.empty() &&
-      hasCjkBreakOpportunityBetween(lastCodepoint(words.back()), firstCodepoint(word))) {
+      (hasCjkBreakOpportunityBetween(lastCodepoint(words.back()), firstCodepoint(word)) ||
+       indic::myanmarBreakBefore(lastCodepoint(words.back()), firstCodepoint(word), secondCodepoint()))) {
     effectiveAttachToPrevious = false;
     effectiveNoSpaceBefore = true;
   }
@@ -1110,6 +1126,12 @@ bool ParsedText::calculateGapMetrics(ArenaVector<int16_t>& naturalGaps, ArenaVec
                                                    continues, noSpaceBefore, guideDotBefore, wordSpacing));
     gapSlots[i] = static_cast<uint8_t>(
         std::min<size_t>(UINT8_MAX, gapSlotsBeforeToken(words[i], continues, noSpaceBefore, guideDotBefore)));
+    // Justifying Burmese stretches the spaces between phrases only: a gap
+    // between two syllables of a word would read as a word break.
+    if (noSpaceBefore && !guideDotBefore &&
+        (indic::isMyanmar(lastCodepoint(words[i - 1])) || indic::isMyanmar(firstCodepoint(words[i])))) {
+      gapSlots[i] = 0;
+    }
   }
   return true;
 }
@@ -1496,8 +1518,14 @@ bool ParsedText::splitTokenAtCodepointBoundary(const size_t wordIndex, const int
     // and never split an Indic syllable: each half would shape on its own.
     const auto* following = next;
     const uint32_t followingCp = utf8NextCodepoint(&following);
+    const auto* afterFollowing = following;
+    uint32_t afterFollowingCp = 0;
+    while (afterFollowing < wordEnd &&
+           (afterFollowingCp = utf8NextCodepoint(&afterFollowing)) == indic::MYANMAR_DOT_BELOW) {
+      afterFollowingCp = 0;
+    }
     if (utf8IsCombiningMark(followingCp) || utf8IsVariationSelector(followingCp) ||
-        !indic::syllableBreakAllowed(currentCp, followingCp)) {
+        !indic::syllableBreakAllowed(currentCp, followingCp, afterFollowingCp)) {
       cursor = next;
       continue;
     }

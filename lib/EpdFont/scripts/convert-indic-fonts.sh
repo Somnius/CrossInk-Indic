@@ -1,5 +1,5 @@
 #!/bin/bash
-# CrossInk-Indic: built-in fonts for the Indic scripts (and Sinhala).
+# CrossInk-Indic: built-in fonts for the Indic scripts (and Sinhala, Myanmar).
 #
 # For each script, from Noto Sans <Script> regular/bold:
 #   <script>_layout.h                 the layout font the shaper reads in place
@@ -17,7 +17,7 @@
 set -e
 cd "$(dirname "$0")"
 
-# name:FontDir:first codepoint of the script's 128-codepoint block
+# name:FontDir:first codepoint of the script's 128-codepoint block[:last codepoint]
 ALL_SCRIPTS=(
   devanagari:NotoSansDevanagari:0x0900
   bengali:NotoSansBengali:0x0980
@@ -29,6 +29,7 @@ ALL_SCRIPTS=(
   kannada:NotoSansKannada:0x0C80
   malayalam:NotoSansMalayalam:0x0D00
   sinhala:NotoSansSinhala:0x0D80
+  myanmar:NotoSansMyanmar:0x1000:0x109F
 )
 READING_SIZES=(10 12 14 16)
 UI_SIZES=(8 10 12)
@@ -42,11 +43,11 @@ done
 # Write each header through a temp file, so a failed run never leaves a truncated one.
 gen() { local out=$1; shift; "$@" > "$out.tmp" && mv "$out.tmp" "$out"; }
 for entry in "${ALL_SCRIPTS[@]}"; do
-  IFS=: read -r name dir first <<< "$entry"
+  IFS=: read -r name dir first last <<< "$entry"
   if [[ ${#wanted[@]} -gt 0 && ! " ${wanted[*]} " =~ " ${name} " ]]; then continue; fi
   src="../builtinFonts/source/$dir"
   regular="$src/$dir-Regular.ttf"
-  last=$(printf '0x%04X' $(( first + 0x7F )))
+  [[ -n "$last" ]] || last=$(printf '0x%04X' $(( first + 0x7F )))
   # The script's block, the dandas several scripts share, ZWNJ/ZWJ (so text
   # drawn unshaped still finds them), the dotted circle the shaper shows for a
   # stray sign.
