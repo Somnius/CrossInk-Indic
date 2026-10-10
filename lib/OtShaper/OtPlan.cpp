@@ -7,13 +7,14 @@ namespace {
 constexpr unsigned NOT_FOUND = 0xFFFF;
 
 // OpenType script tags tried in order: Indic v3 (shaped by USE), v2, v1.
-// Sinhala has one.
+// Sinhala has one; Myanmar has its spec tag and the older one.
 constexpr uint32_t SCRIPT_TAGS[][3] = {
     {tag("dev3"), tag("dev2"), tag("deva")}, {tag("bng3"), tag("bng2"), tag("beng")},
     {tag("gur3"), tag("gur2"), tag("guru")}, {tag("gjr3"), tag("gjr2"), tag("gujr")},
     {tag("ory3"), tag("ory2"), tag("orya")}, {tag("tml3"), tag("tml2"), tag("taml")},
     {tag("tel3"), tag("tel2"), tag("telu")}, {tag("knd3"), tag("knd2"), tag("knda")},
     {tag("mlm3"), tag("mlm2"), tag("mlym")}, {tag("sinh"), 0, 0},
+    {tag("mym2"), tag("mymr"), 0},
 };
 
 // Binary search in a RecordList (count, then tag + offset records), as
@@ -76,16 +77,18 @@ constexpr uint32_t WOULD_STAGES = MASKS + 4 * MF_COUNT;
 constexpr uint32_t TABLES = WOULD_STAGES + 8;  // wouldStage u8[5], reserved u8[3]
 constexpr uint32_t STAGE_BYTES = 4;            // lastLookup u16, pause u8, reserved u8
 constexpr uint32_t LOOKUP_BYTES = 8;           // index u16, flags u8, reserved u8, mask u32
-constexpr uint8_t MAX_PAUSE = static_cast<uint8_t>(Pause::UseReorder);
+constexpr uint8_t MAX_PAUSE = static_cast<uint8_t>(Pause::MyanmarReorder);
 
 // Whether a stage may run `pause`: as the planner emits them, Indic pauses
-// only in Indic plans and USE pauses only in USE plans, both after GSUB
+// only in Indic plans, USE pauses only in USE plans and Myanmar pauses only
+// in Myanmar plans, all after GSUB
 // stages. Other pauses would run a shaper's code without its data.
 bool pauseAllowed(const ShaperKind shaper, const int table, const uint8_t pause) {
   if (pause == static_cast<uint8_t>(Pause::None)) return true;
   if (table != GSUB || pause > MAX_PAUSE) return false;
-  return pause <= static_cast<uint8_t>(Pause::IndicFinalReordering) ? shaper == ShaperKind::Indic
-                                                                    : shaper == ShaperKind::Use;
+  if (pause <= static_cast<uint8_t>(Pause::IndicFinalReordering)) return shaper == ShaperKind::Indic;
+  if (pause <= static_cast<uint8_t>(Pause::UseReorder)) return shaper == ShaperKind::Use;
+  return shaper == ShaperKind::Myanmar;
 }
 }  // namespace cppl
 
@@ -117,7 +120,7 @@ bool Plan::read(const Face& face, const Script s, const uint32_t* languageTags) 
       body = compiled.at(compiled.u32(record + 10));
     }
   }
-  if (body.empty() || body.u8(4) > static_cast<uint8_t>(ShaperKind::Use)) return false;
+  if (body.empty() || body.u8(4) > static_cast<uint8_t>(ShaperKind::Myanmar)) return false;
   // INDIC_CONFIGS has no entry for Sinhala, which shapes with USE.
   if (body.u8(4) == static_cast<uint8_t>(ShaperKind::Indic) &&
       static_cast<unsigned>(s) >= sizeof(INDIC_CONFIGS) / sizeof(INDIC_CONFIGS[0])) {

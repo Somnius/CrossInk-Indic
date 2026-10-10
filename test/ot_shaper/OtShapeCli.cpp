@@ -67,8 +67,9 @@ int main(int argc, char** argv) {
   scale.set(std::atoi(argv[2]), static_cast<unsigned>(std::atoi(argv[3])), face.upem());
   const uint32_t* languages = ot::languageTagsFor(argv[4][0] == '-' ? "" : argv[4]);
 
-  ot::Plan plans[10];
-  bool built[10] = {};
+  constexpr size_t SCRIPTS = static_cast<size_t>(ot::Script::Myanmar) + 1;
+  ot::Plan plans[SCRIPTS];
+  bool built[SCRIPTS] = {};
   ot::Buffer buffer;
   std::string line;
   while (std::getline(std::cin, line)) {
@@ -76,6 +77,10 @@ int main(int argc, char** argv) {
     ot::Script script = ot::Script::Devanagari;
     // Shared codepoints (dandas, joiners) belong to the surrounding script, as in ComplexShaper.
     for (const uint32_t cp : cps) {
+      if (cp >= 0x1000 && cp <= 0x109F) {
+        script = ot::Script::Myanmar;
+        break;
+      }
       if (const indic::ScriptInfo* info = indic::scriptOf(cp)) {
         script = static_cast<ot::Script>(indic::indexOf(*info));
         break;

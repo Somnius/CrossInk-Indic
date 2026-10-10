@@ -11,13 +11,15 @@
 #include <vector>
 
 static const hb_codepoint_t kFirst = 0x0900, kLast = 0x0DFF;
+// Myanmar, the one script outside the consecutive Indic blocks.
+static const hb_codepoint_t kMyFirst = 0x1000, kMyLast = 0x109F;
 static const hb_codepoint_t kExtras[] = {0x200C, 0x200D, 0x25CC};
 
 // Languages written in the scripts the shaper handles (BCP 47 primary subtags).
 static const char* kLanguages[] = {
     "as", "awa", "bh", "bho", "bn", "bpy", "bra", "brx", "doi", "dv", "gbm", "gom", "gu", "hi", "hne", "kfr", "kn",
     "kok", "kru", "ks", "mag", "mai", "ml", "mni", "mr", "mwr", "ne", "new", "or", "pa", "pi", "raj", "sa", "sat",
-    "sck", "sd", "si", "ta", "tcy", "te", "xnr", "en"};
+    "sck", "sd", "si", "ta", "tcy", "te", "xnr", "my", "en"};
 
 static uint32_t pack(hb_codepoint_t u) {
   hb_unicode_funcs_t* uf = hb_unicode_funcs_get_default();
@@ -34,8 +36,13 @@ static uint32_t pack(hb_codepoint_t u) {
   return genCat | (ccc << 5) | ((indic & 0xFFu) << 13) | ((indic >> 8) << 19) | (useCat << 23) | (ignorable << 29);
 }
 
+// Variation selectors: Myanmar's grammar has a category for them.
+static const hb_codepoint_t kVsFirst = 0xFE00, kVsLast = 0xFE0F;
+
 static bool inSet(hb_codepoint_t u) {
   if (u >= kFirst && u <= kLast) return true;
+  if (u >= kVsFirst && u <= kVsLast) return true;
+  if (u >= kMyFirst && u <= kMyLast) return true;
   for (hb_codepoint_t e : kExtras)
     if (u == e) return true;
   return false;
@@ -55,10 +62,11 @@ int main() {
   printf("constexpr unsigned USE_CAT_SHIFT = 23, USE_CAT_BITS = 6;\n");
   printf("constexpr unsigned IGNORABLE_SHIFT = 29;\n");
   printf("constexpr uint32_t FIRST = 0x%04X;\nconstexpr uint32_t LAST = 0x%04X;\n", kFirst, kLast);
+  printf("constexpr uint32_t MYANMAR_FIRST = 0x%04X;\nconstexpr uint32_t MYANMAR_LAST = 0x%04X;\n", kMyFirst, kMyLast);
   // Few distinct values: each codepoint stores an index into PROPS.
   std::vector<uint32_t> props;
-  std::vector<uint8_t> index;
-  for (hb_codepoint_t u = kFirst; u <= kLast; u++) {
+  std::vector<uint8_t> index, myIndex;
+  const auto indexOf = [&props](hb_codepoint_t u) {
     const uint32_t p = pack(u);
     size_t i = 0;
     while (i < props.size() && props[i] != p) i++;
@@ -67,8 +75,10 @@ int main() {
       fprintf(stderr, "more than 256 distinct property values\n");
       exit(1);
     }
-    index.push_back(static_cast<uint8_t>(i));
-  }
+    return static_cast<uint8_t>(i);
+  };
+  for (hb_codepoint_t u = kFirst; u <= kLast; u++) index.push_back(indexOf(u));
+  for (hb_codepoint_t u = kMyFirst; u <= kMyLast; u++) myIndex.push_back(indexOf(u));
   printf("constexpr uint32_t PROPS[] = {");
   for (size_t i = 0; i < props.size(); i++) printf("%s0x%08X,", i % 8 ? " " : "\n    ", props[i]);
   printf("\n};\n");
@@ -76,14 +86,25 @@ int main() {
   printf("constexpr uint8_t PROPS_INDEX[] = {");
   for (size_t i = 0; i < index.size(); i++) printf("%s%u,", i % 16 ? " " : "\n    ", index[i]);
   printf("\n};\n");
+  printf("// Per codepoint MYANMAR_FIRST..MYANMAR_LAST, its PROPS index.\n");
+  printf("constexpr uint8_t MYANMAR_PROPS_INDEX[] = {");
+  for (size_t i = 0; i < myIndex.size(); i++) printf("%s%u,", i % 16 ? " " : "\n    ", myIndex[i]);
+  printf("\n};\n");
   printf("constexpr uint32_t ZWNJ_PROPS = 0x%08X;\n", pack(0x200C));
   printf("constexpr uint32_t ZWJ_PROPS = 0x%08X;\n", pack(0x200D));
-  printf("constexpr uint32_t DOTTED_CIRCLE_PROPS = 0x%08X;\n\n", pack(0x25CC));
+  printf("constexpr uint32_t DOTTED_CIRCLE_PROPS = 0x%08X;\n", pack(0x25CC));
+  for (hb_codepoint_t u = kVsFirst; u <= kVsLast; u++)
+    if (pack(u) != pack(kVsFirst)) {
+      fprintf(stderr, "U+%04X: variation selectors differ\n", u);
+      exit(1);
+    }
+  printf("constexpr uint32_t VARIATION_SELECTOR_PROPS = 0x%08X;  // U+FE00..U+FE0F\n\n", pack(kVsFirst));
 
   // Canonical decompositions within the set (one step, as hb_unicode_decompose).
   printf("struct Decomposition {\n  uint16_t ab, a, b;\n};\nconstexpr Decomposition DECOMPOSITIONS[] = {\n");
   std::vector<hb_codepoint_t> all;
   for (hb_codepoint_t u = kFirst; u <= kLast; u++) all.push_back(u);
+  for (hb_codepoint_t u = kMyFirst; u <= kMyLast; u++) all.push_back(u);
   for (hb_codepoint_t e : kExtras) all.push_back(e);
   for (hb_codepoint_t u : all) {
     hb_codepoint_t a = 0, b = 0;

@@ -52,6 +52,12 @@ void runPause(const Pause pause, const Face& face, const Plan& plan, Buffer& buf
     case Pause::UseReorder:
       useReorder(face, buffer);
       break;
+    case Pause::MyanmarSetupSyllables:
+      myanmarSetupSyllables(buffer);
+      break;
+    case Pause::MyanmarReorder:
+      myanmarReorder(face, buffer);
+      break;
   }
 }
 
@@ -90,9 +96,10 @@ void position(const Face& face, const Scale& scale, const Plan& plan, Buffer& bu
   const unsigned len = buffer.len();
   buffer.pos.assign(len, GlyphPosition{});
   for (unsigned i = 0; i < len; i++) buffer.pos[i].xAdvance = scale.emScaleX(face.advance(buffer.info[i].codepoint));
-  // USE zeroes mark advances before GPOS, the default shaper after it.
+  // USE and Myanmar zero mark advances before GPOS, the default shaper after it.
   const bool adjustOffsets = plan.adjustMarkPositioningWhenZeroing;
-  if (plan.zeroMarks && plan.shaper == ShaperKind::Use) zeroMarkWidths(buffer, adjustOffsets);
+  const bool zeroEarly = plan.shaper == ShaperKind::Use || plan.shaper == ShaperKind::Myanmar;
+  if (plan.zeroMarks && zeroEarly) zeroMarkWidths(buffer, adjustOffsets);
   if (plan.applyGpos) applyTable(face, scale, plan, buffer, GPOS);
   if (plan.zeroMarks && plan.shaper == ShaperKind::Default) zeroMarkWidths(buffer, adjustOffsets);
   if (buffer.hasDefaultIgnorables) {
@@ -183,7 +190,10 @@ bool shape(const Face& face, const Scale& scale, const Plan& plan, const uint32_
     buffer.info.push_back(g);
   }
 
-  if (plan.shaper != ShaperKind::Default) preprocessVowelConstraints(plan.script, buffer);
+  // Myanmar has no vowel constraints (no preprocess_text in HarfBuzz).
+  if (plan.shaper == ShaperKind::Indic || plan.shaper == ShaperKind::Use) {
+    preprocessVowelConstraints(plan.script, buffer);
+  }
   normalize(face, plan, buffer);
   if (!buffer.successful) return false;
 
@@ -191,6 +201,8 @@ bool shape(const Face& face, const Scale& scale, const Plan& plan, const uint32_
     indicSetupMasks(buffer);
   } else if (plan.shaper == ShaperKind::Use) {
     useSetupMasks(buffer);
+  } else if (plan.shaper == ShaperKind::Myanmar) {
+    myanmarSetupMasks(buffer);
   }
 
   // Map to glyphs and set their properties (hb_ot_layout_substitute_start).

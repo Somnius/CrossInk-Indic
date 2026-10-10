@@ -81,6 +81,11 @@ void indicSetupSyllables(Buffer& buffer);
 void indicInitialReordering(const Face& face, const Plan& plan, Buffer& buffer);
 void indicFinalReordering(const Face& face, const Plan& plan, Buffer& buffer);
 
+// The Myanmar shaper (hb-ot-shaper-myanmar.cc).
+void myanmarSetupMasks(Buffer& buffer);
+void myanmarSetupSyllables(Buffer& buffer);
+void myanmarReorder(const Face& face, Buffer& buffer);
+
 // The Universal Shaping Engine (hb-ot-shaper-use.cc).
 void useSetupMasks(Buffer& buffer);
 void useSetupSyllables(const Plan& plan, Buffer& buffer);

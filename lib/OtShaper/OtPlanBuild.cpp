@@ -278,6 +278,21 @@ void collectUseFeatures(FeatureBuilder& b) {
   }
 }
 
+// collect_features_myanmar(): unlike Indic, the basic features are global
+// (the shaper sets no masks).
+void collectMyanmarFeatures(FeatureBuilder& b) {
+  b.pause(GSUB, Pause::MyanmarSetupSyllables);
+  b.enable(tag("locl"), ff::PER_SYLLABLE);
+  b.enable(tag("ccmp"), ff::PER_SYLLABLE);
+  b.pause(GSUB, Pause::MyanmarReorder);
+  for (const uint32_t t : {tag("rphf"), tag("pref"), tag("blwf"), tag("pstf")}) {
+    b.enable(t, ff::MANUAL_ZWJ | ff::PER_SYLLABLE);
+    b.pause(GSUB, Pause::None);
+  }
+  b.pause(GSUB, Pause::None);  // HarfBuzz frees the syllable data here
+  for (const uint32_t t : {tag("pres"), tag("abvs"), tag("blws"), tag("psts")}) b.enable(t, ff::MANUAL_ZWJ);
+}
+
 }  // namespace
 
 // hb_ot_map_builder_t::compile() for one script and language: which
@@ -305,6 +320,9 @@ class PlanBuilder {
     } else if (plan_.shaper == ShaperKind::Use) {
       b.isSimple = false;
       collectUseFeatures(b);
+    } else if (plan_.shaper == ShaperKind::Myanmar) {
+      b.isSimple = false;
+      collectMyanmarFeatures(b);
     }
     collectCommonFeatures(b);
     if (plan_.shaper == ShaperKind::Indic) overrideIndicFeatures(b);
@@ -346,6 +364,9 @@ class PlanBuilder {
     const uint32_t chosen = plan_.chosenScript;
     if (chosen == tag("DFLT") || chosen == tag("latn")) {
       plan_.shaper = ShaperKind::Default;
+    } else if (plan_.script == Script::Myanmar) {
+      // Fonts made for the pre-spec 'mymr' tag get the default shaper.
+      plan_.shaper = chosen == tag("mymr") ? ShaperKind::Default : ShaperKind::Myanmar;
     } else if (plan_.script == Script::Sinhala || (chosen & 0xFF) == '3') {
       plan_.shaper = ShaperKind::Use;
     } else {

@@ -14,7 +14,7 @@
 // Mirrors HarfBuzz's hb_ot_map_builder_t / hb_ot_shape_plan_t.
 namespace ot {
 
-enum class ShaperKind : uint8_t { Default, Indic, Use };
+enum class ShaperKind : uint8_t { Default, Indic, Use, Myanmar };
 
 // Work done between GSUB stages (HarfBuzz pause callbacks).
 enum class Pause : uint8_t {
@@ -27,9 +27,12 @@ enum class Pause : uint8_t {
   UseRecordRphf,
   UseRecordPref,
   UseReorder,
+  MyanmarSetupSyllables,
+  MyanmarReorder,
 };
 
-// Indic scripts shaped here, in Unicode block order from U+0900.
+// Scripts shaped here: the Indic ones in Unicode block order from U+0900,
+// then Myanmar (U+1000).
 enum class Script : uint8_t {
   Devanagari,
   Bengali,
@@ -40,7 +43,8 @@ enum class Script : uint8_t {
   Telugu,
   Kannada,
   Malayalam,
-  Sinhala
+  Sinhala,
+  Myanmar
 };
 
 // Most lookups a plan takes per table; fonts with more are not shaped.

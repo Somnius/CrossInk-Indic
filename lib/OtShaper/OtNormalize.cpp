@@ -154,8 +154,10 @@ class Normalizer {
   }
 
   bool compose1(const uint32_t a, const uint32_t b, uint32_t* ab) const {
-    // Split matras stay split: nothing composes onto a mark.
-    if (plan_.shaper != ShaperKind::Default && gc::isMark(charData(a).genCat)) return false;
+    // Split matras stay split: nothing composes onto a mark (compose_indic,
+    // compose_use; Myanmar composes as the default shaper does).
+    const bool indicOrUse = plan_.shaper == ShaperKind::Indic || plan_.shaper == ShaperKind::Use;
+    if (indicOrUse && gc::isMark(charData(a).genCat)) return false;
     // Bengali YYA is a composition exclusion the Indic shaper composes anyway.
     if (plan_.shaper == ShaperKind::Indic && a == 0x09AF && b == 0x09BC) {
       *ab = 0x09DF;
@@ -301,12 +303,16 @@ CharData charData(const uint32_t cp) {
   uint32_t packed;
   if (cp >= ucd::FIRST && cp <= ucd::LAST) {
     packed = ucd::PROPS[ucd::PROPS_INDEX[cp - ucd::FIRST]];
+  } else if (cp >= ucd::MYANMAR_FIRST && cp <= ucd::MYANMAR_LAST) {
+    packed = ucd::PROPS[ucd::MYANMAR_PROPS_INDEX[cp - ucd::MYANMAR_FIRST]];
   } else if (cp == 0x200C) {
     packed = ucd::ZWNJ_PROPS;
   } else if (cp == 0x200D) {
     packed = ucd::ZWJ_PROPS;
   } else if (cp == DOTTED_CIRCLE) {
     packed = ucd::DOTTED_CIRCLE_PROPS;
+  } else if (cp >= 0xFE00 && cp <= 0xFE0F) {
+    packed = ucd::VARIATION_SELECTOR_PROPS;
   } else {
     return CharData{gc::UNASSIGNED, 0, 0, 0, 0, false};
   }

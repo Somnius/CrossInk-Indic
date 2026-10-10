@@ -16,6 +16,8 @@ constexpr unsigned USE_CAT_SHIFT = 23, USE_CAT_BITS = 6;
 constexpr unsigned IGNORABLE_SHIFT = 29;
 constexpr uint32_t FIRST = 0x0900;
 constexpr uint32_t LAST = 0x0DFF;
+constexpr uint32_t MYANMAR_FIRST = 0x1000;
+constexpr uint32_t MYANMAR_LAST = 0x109F;
 constexpr uint32_t PROPS[] = {
     0x12E9000C, 0x13E9000A, 0x00A04007, 0x00A02007, 0x00A1E007, 0x10C8E00C, 0x11C8E00A, 0x107060EC, 0x00EA2007,
     0x0B10E00A, 0x1148E00C, 0x0640812C, 0x00700007, 0x12E93CCC, 0x13693B8C, 0x00691CCC, 0x00700015, 0x00A1400D,
@@ -24,6 +26,9 @@ constexpr uint32_t PROPS[] = {
     0x10E0E00A, 0x12E9200C, 0x0FF0600C, 0x12B9000C, 0x10A8E00C, 0x0B28E00A, 0x10F0600C, 0x0630812C, 0x10B8E00C,
     0x11B8E00A, 0x10B8E08C, 0x1138E0AC, 0x1138E00C, 0x10B8E00A, 0x10C8E00A, 0x15A24007, 0x10C8E12C, 0x0971C007,
     0x12F0000C, 0x13F0000A, 0x00F00007, 0x1AF0012C, 0x11F0000A, 0x10F0000C, 0x1170000C, 0x0B70000A, 0x00F0000D,
+    0x11DAE00A, 0x10B2800C, 0x1142A00C, 0x0B1AC00A, 0x10E9200C, 0x137060EC, 0x1670812C, 0x10F4012C, 0x0EF4C00A,
+    0x0F74800A, 0x0E74A00C, 0x0E74600C, 0x00214015, 0x02A14015, 0x02A02015, 0x0E74C00C, 0x0E75200C, 0x13F4E00A,
+    0x13691B8C, 0x11E9000A,
 };
 // Per codepoint FIRST..LAST, its PROPS index.
 constexpr uint8_t PROPS_INDEX[] = {
@@ -73,9 +78,19 @@ constexpr uint8_t PROPS_INDEX[] = {
     58, 20, 20, 20, 20, 20, 20, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 20, 20, 58, 58, 16, 20, 20, 20, 20, 20, 20, 20,
     20, 20, 20, 20,
 };
+// Per codepoint MYANMAR_FIRST..MYANMAR_LAST, its PROPS index.
+constexpr uint8_t MYANMAR_PROPS_INDEX[] = {
+    3,  3,  3, 3,  4,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
+    4,  3,  3, 3,  3,  3,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  63, 63, 64, 64, 65, 65, 66, 67, 64, 64, 64,
+    37, 68, 1, 69, 70, 71, 72, 73, 74, 3,  17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 75, 76, 16, 16, 77, 16, 3,
+    3,  2,  2, 2,  2,  63, 63, 65, 65, 4,  3,  3,  3,  78, 78, 79, 3,  63, 80, 80, 3,  3,  63, 63, 80, 80, 80,
+    80, 80, 3, 3,  3,  64, 64, 64, 64, 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  73, 63, 66, 64, 64,
+    1,  1,  1, 1,  1,  1,  81, 3,  1,  17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 1,  1,  82, 64, 26, 26,
+};
 constexpr uint32_t ZWNJ_PROPS = 0x2770A001;
 constexpr uint32_t ZWJ_PROPS = 0x2370C001;
 constexpr uint32_t DOTTED_CIRCLE_PROPS = 0x00A1601A;
+constexpr uint32_t VARIATION_SELECTOR_PROPS = 0x2375000C;  // U+FE00..U+FE0F
 
 struct Decomposition {
   uint16_t ab, a, b;
@@ -92,6 +107,7 @@ constexpr Decomposition DECOMPOSITIONS[] = {
     {0x0CC0, 0x0CBF, 0x0CD5}, {0x0CC7, 0x0CC6, 0x0CD5}, {0x0CC8, 0x0CC6, 0x0CD6}, {0x0CCA, 0x0CC6, 0x0CC2},
     {0x0CCB, 0x0CCA, 0x0CD5}, {0x0D4A, 0x0D46, 0x0D3E}, {0x0D4B, 0x0D47, 0x0D3E}, {0x0D4C, 0x0D46, 0x0D57},
     {0x0DDA, 0x0DD9, 0x0DCA}, {0x0DDC, 0x0DD9, 0x0DCF}, {0x0DDD, 0x0DDC, 0x0DCA}, {0x0DDE, 0x0DD9, 0x0DDF},
+    {0x1026, 0x1025, 0x102E},
 };
 
 struct Composition {
@@ -104,7 +120,7 @@ constexpr Composition COMPOSITIONS[] = {
     {0x0C46, 0x0C56, 0x0C48}, {0x0CBF, 0x0CD5, 0x0CC0}, {0x0CC6, 0x0CC2, 0x0CCA}, {0x0CC6, 0x0CD5, 0x0CC7},
     {0x0CC6, 0x0CD6, 0x0CC8}, {0x0CCA, 0x0CD5, 0x0CCB}, {0x0D46, 0x0D3E, 0x0D4A}, {0x0D46, 0x0D57, 0x0D4C},
     {0x0D47, 0x0D3E, 0x0D4B}, {0x0DD9, 0x0DCA, 0x0DDA}, {0x0DD9, 0x0DCF, 0x0DDC}, {0x0DD9, 0x0DDF, 0x0DDE},
-    {0x0DDC, 0x0DCA, 0x0DDD},
+    {0x0DDC, 0x0DCA, 0x0DDD}, {0x1025, 0x102E, 0x1026},
 };
 
 struct LanguageTags {
@@ -153,6 +169,7 @@ constexpr LanguageTags LANGUAGES[] = {
     {"tcy", {0x54554C20, 0x00000000, 0x00000000}},  // 'TUL '
     {"te", {0x54454C20, 0x00000000, 0x00000000}},   // 'TEL '
     {"xnr", {0x44475220, 0x00000000, 0x00000000}},  // 'DGR '
+    {"my", {0x42524D20, 0x00000000, 0x00000000}},   // 'BRM '
     {"en", {0x454E4720, 0x00000000, 0x00000000}},   // 'ENG '
 };
 

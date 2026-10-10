@@ -25,6 +25,19 @@ constexpr uint8_t START = 0, RA_TO_BECOME_REPH = 1, PRE_M = 2, PRE_C = 3, BASE_C
                   END = 14;
 }
 
+// Myanmar character categories beyond the Indic ones they share
+// (myanmar_syllable_machine_ex_*): consonants are icat::C, Ra and CS,
+// H is the virama, and so on.
+namespace mcat {
+constexpr uint8_t IV = 2, DB = 3, GB = 10, VAbv = 20, VBlw = 21, VPre = 22, VPst = 23, As = 32, MH = 35, MR = 36,
+                  MW = 37, MY = 38, PT = 39, VS = 40, ML = 41;
+}
+
+// Myanmar syllable types (myanmar_syllable_type_t).
+namespace msyl {
+constexpr uint8_t CONSONANT = 0, BROKEN = 1, NON_MYANMAR = 2;
+}
+
 // Indic syllable types (indic_syllable_type_t).
 namespace isyl {
 constexpr uint8_t CONSONANT = 0, VOWEL = 1, STANDALONE = 2, SYMBOL = 3, BROKEN = 4, NON_INDIC = 5;
