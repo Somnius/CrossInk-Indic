@@ -1,4 +1,6 @@
-## [Unreleased]
+## [v1.6.0-indic.3] - 2026-10-10
+
+Burmese.
 
 ### Added
 
