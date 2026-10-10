@@ -24,6 +24,8 @@ ISO = ["Deva", "Beng", "Guru", "Gujr", "Orya", "Taml", "Telu", "Knda", "Mlym", "
 def script_of(text):
     for ch in text:
         cp = ord(ch)
+        if 0x1000 <= cp <= 0x109F or 0xA9E0 <= cp <= 0xA9FF or 0xAA60 <= cp <= 0xAA7F:
+            return "Mymr"
         if 0x0900 <= cp <= 0x0DFF and not (0x0951 <= cp <= 0x0954 or cp in (0x0964, 0x0965)):
             return ISO[(cp - 0x0900) >> 7]
     return "Deva"
