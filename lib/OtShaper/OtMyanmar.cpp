@@ -13,8 +13,8 @@ namespace {
 // Vowels and placeholders count as consonants: they cannot occur in a
 // consonant syllable, and treating them so lets broken clusters reorder like
 // consonant syllables.
-constexpr uint64_t CONSONANT_FLAGS = flag(icat::C) | flag(icat::CS) | flag(icat::Ra) | flag(mcat::IV) |
-                                     flag(mcat::GB) | flag(icat::DOTTEDCIRCLE);
+constexpr uint64_t CONSONANT_FLAGS =
+    flag(icat::C) | flag(icat::CS) | flag(icat::Ra) | flag(mcat::IV) | flag(mcat::GB) | flag(icat::DOTTEDCIRCLE);
 
 bool isConsonant(const GlyphInfo& info) {
   if (info.ligated()) return false;  // if it ligated, all bets are off
