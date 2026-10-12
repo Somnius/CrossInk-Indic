@@ -163,7 +163,10 @@ On the X3 and X4 (no PSRAM), the first time an Indic font is used its layout
 tables (about 90-100 KB per style for Noto Devanagari) are copied once into
 the unused `spiffs` area of the device's internal flash and read from there,
 keeping the reader's RAM free. The converter warns when a font's tables exceed
-the 128 KB that area holds per font. Opening a chapter for the first time takes
+the 128 KB that area holds per font. On a device whose `spiffs` partition is
+missing or smaller than 384 KB, only SD fonts whose tables are 16 KB or less
+(Tamil, Gurmukhi, Malayalam, Sinhala Sans) are shaped; the built-in fonts are
+not affected. Opening a chapter for the first time takes
 longer than a Latin one, because every word is shaped while the chapter is
 laid out; page turns draw the shaped words stored with the chapter's cached
 layout instead of shaping them again. If the X3/X4 runs short of memory while
