@@ -1,3 +1,11 @@
+## [v1.6.0-indic.5] - 2026-10-22
+
+SD card Indic fonts on devices with a small flash partition.
+
+### Fixed
+
+- Indic fonts from the SD card are shaped on devices that still have their factory partition table, like a stock X3 updated only from the SD card. Its `spiffs` partition is 1 MB, smaller than the eight 128 KB slots the font table cache wanted, so the cache switched itself off and the tables went to the heap, where Bengali could crash the reader. The cache now uses as many slots as fit (7 on 1 MB), and without PSRAM only tables of 16 KB or less are read into the heap. Devices with the CrossInk partition table keep all 8 slots. The built-in fonts don't use this cache and aren't affected. Ported from SSafayet's fix in CrossPoint PR #3787.
+
 ## [v1.6.0-indic.4] - 2026-10-10
 
 Burmese spacing.
