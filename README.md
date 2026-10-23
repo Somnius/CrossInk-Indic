@@ -47,6 +47,12 @@ tests, and on an emulated ESP32-C3 (Espressif QEMU, [test/qemu/c3_shaping](./tes
 for the X3/X4 shaping paths. Not yet on real hardware, so releases are marked
 pre-release.
 
+**Help me get a device.** I build and keep every variant up to date, 100
+firmware files per release (25 language and script builds for 4 devices),
+without owning a reader to test them on. If these builds are useful to you,
+you can chip in towards an Xteink X4 Pro for real-device testing on the
+[pledge page](https://lefteros.com/en/crossink-donation/).
+
 > **CrossInk is a personal fork of [CrossPoint Reader](https://github.com/crosspoint-reader/crosspoint-reader)** with a focus on improved fonts and minimal reading stats.
 
 ### Supported Devices
